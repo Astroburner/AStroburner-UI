@@ -31,6 +31,8 @@ class GenerateImageRequest(BaseModel):
     seed: Optional[int] = None
 
 class LoadModelRequest(BaseModel):
+    model_config = {"protected_namespaces": ()}
+    
     model_key: str
 
 # API Routes
