@@ -107,7 +107,7 @@ Siehe auch: [INSTALL_AFTER_EXTRACT.md](INSTALL_AFTER_EXTRACT.md)
 # https://github.com/Astroburner/AStroburner-UI.git
 
 # 2. Automatische Installation (15-25 Min)
-cd ai-studio
+cd AStroburner-UI
 setup.bat
 
 # 3. Wähle deine GPU während der Installation:
