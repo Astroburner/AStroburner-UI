@@ -34,7 +34,7 @@ REM 1. SYSTEM CHECKS
 REM ========================================
 
 echo.
-echo [1/6] Checking system requirements...
+echo [1/6] Checking system requirements.
 echo.
 
 REM Check Python
@@ -115,7 +115,7 @@ REM 2. BACKEND SETUP
 REM ========================================
 
 echo.
-echo [2/6] Setting up Python backend...
+echo [2/6] Setting up Python backend.
 echo.
 
 cd backend
@@ -130,16 +130,16 @@ if exist "venv\" (
     echo Virtual environment already exists.
     choice /C YN /M "Delete and recreate"
     if errorlevel 2 (
-        echo Keeping existing virtual environment...
+        echo Keeping existing virtual environment.
     ) else (
-        echo Deleting old virtual environment...
+        echo Deleting old virtual environment.
         rmdir /s /q venv
     )
 )
 
 REM Create virtual environment
 if not exist "venv\" (
-    echo Creating Python virtual environment...
+    echo Creating Python virtual environment.
     python -m venv venv
     if %errorlevel% neq 0 (
         echo [ERROR] Failed to create virtual environment!
@@ -151,7 +151,7 @@ if not exist "venv\" (
 )
 
 REM Activate virtual environment
-echo Activating virtual environment...
+echo Activating virtual environment.
 call venv\Scripts\activate
 if %errorlevel% neq 0 (
     echo [ERROR] Failed to activate virtual environment!
@@ -161,7 +161,7 @@ if %errorlevel% neq 0 (
 )
 
 REM Upgrade pip
-echo Upgrading pip...
+echo Upgrading pip.
 python -m pip install --upgrade pip
 
 REM ========================================
@@ -171,16 +171,16 @@ REM CRITICAL: PyTorch MUST be installed BEFORE requirements.txt
 REM otherwise requirements.txt installs CPU-only PyTorch!
 
 echo.
-echo [3/6] Installing PyTorch with CUDA support...
+echo [3/6] Installing PyTorch with CUDA support.
 echo.
-echo IMPORTANT: Installing PyTorch FIRST (before other dependencies)
-echo This ensures we get the correct CUDA version!
+echo IMPORTANT: Installing PyTorch FIRST (before other dependencies^)
+echo This ensures we get the correct CUDA version
 echo.
 
 REM Detect GPU and auto-suggest CUDA version
 nvidia-smi >nul 2>&1
 if %errorlevel% neq 0 (
-    echo No NVIDIA GPU detected. Installing PyTorch for CPU...
+    echo No NVIDIA GPU detected. Installing PyTorch for CPU.
     pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 ) else (
     echo NVIDIA GPU detected!
@@ -245,48 +245,48 @@ if %errorlevel% neq 0 (
 
     :install_pytorch_cu128
     echo.
-    echo Installing PyTorch for CUDA 12.8...
+    echo Installing PyTorch for CUDA 12.8.
     echo.
-    echo [1/2] Uninstalling any existing PyTorch (CPU version)...
+    echo [1/2] Uninstalling any existing PyTorch (CPU version).
     pip uninstall torch torchvision torchaudio -y >nul 2>&1
     echo [OK] Old PyTorch removed
     echo.
-    echo [2/2] Installing PyTorch with CUDA 12.8...
-    echo This will download ~2-3 GB, please wait...
+    echo [2/2] Installing PyTorch with CUDA 12.8.
+    echo This will download ~2-3 GB, please wait.
     echo.
     pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
     goto :verify_pytorch
 
     :install_pytorch_cu121
     echo.
-    echo Installing PyTorch for CUDA 12.1...
+    echo Installing PyTorch for CUDA 12.1.
     echo.
-    echo [1/2] Uninstalling any existing PyTorch (CPU version)...
+    echo [1/2] Uninstalling any existing PyTorch (CPU version).
     pip uninstall torch torchvision torchaudio -y >nul 2>&1
     echo [OK] Old PyTorch removed
     echo.
-    echo [2/2] Installing PyTorch with CUDA 12.1...
-    echo This will download ~2-3 GB, please wait...
+    echo [2/2] Installing PyTorch with CUDA 12.1.
+    echo This will download ~2-3 GB, please wait.
     echo.
     pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
     goto :verify_pytorch
 
     :install_pytorch_cu118
     echo.
-    echo Installing PyTorch for CUDA 11.8...
+    echo Installing PyTorch for CUDA 11.8.
     echo.
-    echo [1/2] Uninstalling any existing PyTorch (CPU version)...
+    echo [1/2] Uninstalling any existing PyTorch (CPU version).
     pip uninstall torch torchvision torchaudio -y >nul 2>&1
     echo [OK] Old PyTorch removed
     echo.
-    echo [2/2] Installing PyTorch with CUDA 11.8...
-    echo This will download ~2-3 GB, please wait...
+    echo [2/2] Installing PyTorch with CUDA 11.8.
+    echo This will download ~2-3 GB, please wait.
     echo.
     pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
     goto :verify_pytorch
 
     :install_pytorch_cpu
-    echo Installing PyTorch for CPU...
+    echo Installing PyTorch for CPU.
     pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
     goto :verify_pytorch
 
@@ -352,20 +352,20 @@ if %errorlevel% neq 0 (
         ) else (
             echo.
             echo ========================================
-            echo    FIXING CUDA INSTALLATION...
+            echo    FIXING CUDA INSTALLATION.
             echo ========================================
             echo.
-            echo [1/3] Uninstalling CPU-only PyTorch...
+            echo [1/3] Uninstalling CPU-only PyTorch.
             pip uninstall torch torchvision torchaudio -y
             
             echo.
-            echo [2/3] Installing PyTorch with CUDA 12.8...
-            echo This will download ~2-3 GB...
+            echo [2/3] Installing PyTorch with CUDA 12.8.
+            echo This will download ~2-3 GB.
             echo.
             pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
             
             echo.
-            echo [3/3] Verifying CUDA installation...
+            echo [3/3] Verifying CUDA installation.
             echo.
             python -c "import torch; print('=' * 50); print('PyTorch Version:', torch.__version__); print('CUDA Available:', torch.cuda.is_available()); print('CUDA Version:', torch.version.cuda if torch.cuda.is_available() else 'N/A'); print('GPU Count:', torch.cuda.device_count() if torch.cuda.is_available() else 0); print('GPU Name:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'N/A'); print('GPU Memory:', f'{torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB' if torch.cuda.is_available() else 'N/A'); print('Compute Capability:', f'{torch.cuda.get_device_capability(0)[0]}.{torch.cuda.get_device_capability(0)[1]}' if torch.cuda.is_available() else 'N/A'); print('=' * 50)"
             
@@ -417,8 +417,8 @@ REM NOW INSTALL OTHER DEPENDENCIES (after PyTorch)
 REM ========================================
 
 echo.
-echo Installing remaining Python dependencies...
-echo This may take a few minutes...
+echo Installing remaining Python dependencies.
+echo This may take a few minutes.
 echo.
 
 if not exist "requirements.txt" (
@@ -451,7 +451,7 @@ REM 4. FRONTEND SETUP
 REM ========================================
 
 echo.
-echo [4/6] Setting up frontend...
+echo [4/6] Setting up frontend.
 echo.
 
 cd frontend
@@ -467,16 +467,16 @@ if exist "node_modules\" (
     echo node_modules already exists.
     choice /C YN /M "Delete and reinstall"
     if errorlevel 2 (
-        echo Keeping existing node_modules...
+        echo Keeping existing node_modules.
         goto :skip_npm_install
     ) else (
-        echo Deleting old node_modules...
+        echo Deleting old node_modules.
         rmdir /s /q node_modules
     )
 )
 
-echo Installing Node.js dependencies...
-echo This may take 5-10 minutes...
+echo Installing Node.js dependencies.
+echo This may take 5-10 minutes.
 echo.
 
 call npm install
@@ -505,7 +505,7 @@ REM 5. RUST CHECK (for Tauri)
 REM ========================================
 
 echo.
-echo [5/6] Checking Rust installation (required for Tauri^)...
+echo [5/6] Checking Rust installation (required for Tauri^).
 echo.
 
 set RUST_MISSING=
@@ -540,7 +540,7 @@ if %errorlevel% neq 0 (
 
 REM Check for Visual Studio Build Tools (Windows)
 echo.
-echo Checking for Visual Studio Build Tools...
+echo Checking for Visual Studio Build Tools.
 where cl.exe >nul 2>&1
 if %errorlevel% neq 0 (
     echo [WARNING] Visual Studio Build Tools not detected
@@ -568,7 +568,7 @@ REM 6. FINAL VERIFICATION
 REM ========================================
 
 echo.
-echo [6/6] Final verification...
+echo [6/6] Final verification.
 echo.
 
 set SETUP_FAILED=
@@ -600,7 +600,7 @@ if %errorlevel% neq 0 (
 
 REM Create models directory structure if it doesn't exist
 if not exist "models\" (
-    echo Creating models directory...
+    echo Creating models directory.
     mkdir models
     echo [OK] models directory created
 ) else (
@@ -691,7 +691,7 @@ if errorlevel 1 goto :action_start_all
 
 :action_start_all
     echo.
-    echo Starting AI Studio...
+    echo Starting AI Studio.
     echo This will open two terminal windows.
     echo.
     timeout /t 2 >nul
@@ -705,21 +705,21 @@ if errorlevel 1 goto :action_start_all
 
 :action_start_backend
     echo.
-    echo Starting Backend only...
+    echo Starting Backend only.
     echo.
     start cmd /k "cd backend && venv\Scripts\activate && python main.py"
     goto :end_menu_loop
 
 :action_start_frontend
     echo.
-    echo Starting Frontend only...
+    echo Starting Frontend only.
     echo.
     start cmd /k "cd frontend && call npm run tauri dev"
     goto :end_menu_loop
 
 :action_open_folder
     echo.
-    echo Opening project folder...
+    echo Opening project folder.
     start .
     goto :end_menu_loop
 
@@ -759,6 +759,6 @@ echo ========================================
 echo    Thank you for using AI Studio!
 echo ========================================
 echo.
-echo Closing in 3 seconds...
+echo Closing in 3 seconds.
 timeout /t 3 >nul
 exit
