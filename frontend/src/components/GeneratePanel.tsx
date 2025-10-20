@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { FiImage, FiLoader, FiUpload, FiX, FiPackage } from 'react-icons/fi';
+import { useState, useRef, useEffect } from 'react';
+import { FiImage, FiLoader, FiUpload, FiX, FiPackage, FiEye, FiEyeOff } from 'react-icons/fi';
 import { useAppStore } from '../hooks/useAppStore';
 import { apiService } from '../services/api';
 
@@ -18,6 +18,7 @@ export default function GeneratePanel() {
     inputImage,
     isGenerating,
     activeLoras,
+    nsfw,
     setPrompt,
     setNegativePrompt,
     setWidth,
@@ -30,12 +31,34 @@ export default function GeneratePanel() {
     setDenoiseStrength,
     setInputImage,
     setIsGenerating,
+    setNsfw,
     addGeneratedImages,
     updateLoraWeight,
   } = useAppStore();
 
   const [error, setError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
+  // Refs for auto-resizing textareas
+  const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const negativePromptTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize textarea function
+  const autoResizeTextarea = (textarea: HTMLTextAreaElement | null) => {
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  };
+
+  // Auto-resize on prompt changes
+  useEffect(() => {
+    autoResizeTextarea(promptTextareaRef.current);
+  }, [prompt]);
+
+  useEffect(() => {
+    autoResizeTextarea(negativePromptTextareaRef.current);
+  }, [negativePrompt]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -53,41 +76,6 @@ export default function GeneratePanel() {
   const handleRemoveImage = () => {
     setInputImage(null);
     setImagePreview(null);
-  };
-
-  const handleGenerate = async () => {
-    if (!prompt.trim()) {
-      setError('Bitte gib einen Prompt ein');
-      return;
-    }
-
-    setError(null);
-    setIsGenerating(true);
-
-    try {
-      const response = await apiService.generateImage({
-        prompt,
-        negative_prompt: negativePrompt,
-        width,
-        height,
-        num_inference_steps: steps,
-        guidance_scale: guidanceScale,
-        num_images: numImages,
-        seed: seed || undefined,
-        scheduler: scheduler,
-        denoise_strength: inputImage ? denoiseStrength : undefined,
-        input_image: inputImage || undefined,
-      });
-
-      if (response.success) {
-        addGeneratedImages(response.images);
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || 'Generation fehlgeschlagen');
-      console.error('Generation error:', err);
-    } finally {
-      setIsGenerating(false);
-    }
   };
 
   return (
@@ -188,7 +176,7 @@ export default function GeneratePanel() {
                 </label>
                 <input
                   type="range"
-                  min="0"
+                  min="-1"
                   max="2"
                   step="0.05"
                   value={lora.weight}
@@ -197,6 +185,7 @@ export default function GeneratePanel() {
                   disabled={isGenerating}
                 />
                 <div className="flex justify-between text-xs text-gray-500">
+                  <span>-1.0</span>
                   <span>0.0</span>
                   <span>1.0</span>
                   <span>2.0</span>
@@ -211,14 +200,45 @@ export default function GeneratePanel() {
         </div>
       )}
 
+      {/* NSFW Toggle */}
+      <div className="bg-dark-700 border border-dark-600 rounded-lg p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {nsfw ? (
+              <FiEye className="text-red-400" />
+            ) : (
+              <FiEyeOff className="text-green-400" />
+            )}
+            <span className="text-sm font-medium text-gray-300">NSFW Content</span>
+          </div>
+          <button
+            onClick={() => setNsfw(!nsfw)}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              nsfw
+                ? 'bg-red-600 hover:bg-red-500 text-white'
+                : 'bg-green-600 hover:bg-green-500 text-white'
+            }`}
+            disabled={isGenerating}
+          >
+            {nsfw ? 'Aktiviert' : 'Deaktiviert'}
+          </button>
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          {nsfw 
+            ? '⚠️ NSFW-Content wird generiert (Safety Checker deaktiviert)' 
+            : '✅ SFW-Modus aktiv (Safety Checker aktiviert)'}
+        </p>
+      </div>
+
       {/* Prompt Input */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-300">Prompt</label>
         <textarea
+          ref={promptTextareaRef}
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="Beschreibe was du generieren möchtest..."
-          className="w-full h-24 px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+          className="w-full min-h-[96px] px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none overflow-hidden"
           disabled={isGenerating}
         />
       </div>
@@ -227,10 +247,11 @@ export default function GeneratePanel() {
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-300">Negative Prompt (Optional)</label>
         <textarea
+          ref={negativePromptTextareaRef}
           value={negativePrompt}
           onChange={(e) => setNegativePrompt(e.target.value)}
           placeholder="Was soll nicht im Bild sein..."
-          className="w-full h-20 px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+          className="w-full min-h-[80px] px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none overflow-hidden"
           disabled={isGenerating}
         />
       </div>
@@ -376,25 +397,6 @@ export default function GeneratePanel() {
           {error}
         </div>
       )}
-
-      {/* Generate Button */}
-      <button
-        onClick={handleGenerate}
-        disabled={isGenerating || !prompt.trim()}
-        className="w-full py-4 bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-500 hover:to-accent-500 disabled:from-gray-600 disabled:to-gray-600 text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2 disabled:cursor-not-allowed"
-      >
-        {isGenerating ? (
-          <>
-            <FiLoader className="animate-spin" />
-            Generiere...
-          </>
-        ) : (
-          <>
-            <FiImage />
-            Bild Generieren
-          </>
-        )}
-      </button>
     </div>
   );
 }

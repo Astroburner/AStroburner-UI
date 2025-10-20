@@ -19,6 +19,7 @@ interface AppState {
   scheduler: string;
   denoiseStrength: number;
   inputImage: string | null;
+  nsfw: boolean;
   
   // Models
   models: ModelInfo[];
@@ -53,6 +54,18 @@ interface AppState {
   setScheduler: (scheduler: string) => void;
   setDenoiseStrength: (strength: number) => void;
   setInputImage: (image: string | null) => void;
+  setNsfw: (nsfw: boolean) => void;
+  
+  loadGenerationParams: (params: {
+    prompt: string;
+    negativePrompt: string;
+    width: number;
+    height: number;
+    steps: number;
+    guidanceScale: number;
+    seed: number | null;
+    scheduler: string;
+  }) => void;
   
   setModels: (models: ModelInfo[]) => void;
   setCurrentModel: (model: ModelInfo | null) => void;
@@ -87,6 +100,7 @@ export const useAppStore = create<AppState>((set) => ({
   scheduler: 'DPMSolverMultistep',
   denoiseStrength: 0.75,
   inputImage: null,
+  nsfw: true,
   
   models: [],
   currentModel: null,
@@ -119,6 +133,18 @@ export const useAppStore = create<AppState>((set) => ({
   setScheduler: (scheduler) => set({ scheduler }),
   setDenoiseStrength: (strength) => set({ denoiseStrength: strength }),
   setInputImage: (image) => set({ inputImage: image }),
+  setNsfw: (nsfw) => set({ nsfw }),
+  
+  loadGenerationParams: (params) => set({
+    prompt: params.prompt,
+    negativePrompt: params.negativePrompt,
+    width: params.width,
+    height: params.height,
+    steps: params.steps,
+    guidanceScale: params.guidanceScale,
+    seed: params.seed,
+    scheduler: params.scheduler,
+  }),
   
   setModels: (models) => set({ models }),
   setCurrentModel: (model) => set({ currentModel: model }),

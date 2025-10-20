@@ -1,6 +1,6 @@
 {
-  "name": "ai-studio-frontend",
-  "version": "1.7.1",
+  "name": "astroburner-ui-frontend",
+  "version": "1.9.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

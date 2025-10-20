@@ -48,17 +48,17 @@ class AddLoRARequest(BaseModel):
     model_type: str = Field(..., min_length=1)
     trigger_words: Optional[str] = None
     description: Optional[str] = None
-    weight: float = Field(default=1.0, ge=0.0, le=2.0)
+    weight: float = Field(default=1.0, ge=-1.0, le=2.0)
 
 class UpdateLoRARequest(BaseModel):
     name: Optional[str] = None
     trigger_words: Optional[str] = None
     description: Optional[str] = None
-    weight: Optional[float] = Field(default=None, ge=0.0, le=2.0)
+    weight: Optional[float] = Field(default=None, ge=-1.0, le=2.0)
 
 class SetLoRAActiveRequest(BaseModel):
     is_active: bool
-    weight: Optional[float] = Field(default=None, ge=0.0, le=2.0)
+    weight: Optional[float] = Field(default=None, ge=-1.0, le=2.0)
 
 # API Routes
 @router.get("/health")
@@ -382,4 +382,141 @@ async def deactivate_all_loras():
         return {"success": True, "message": "All LoRAs deactivated"}
     except Exception as e:
         logger.error(f"Error deactivating all LoRAs: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Custom Models Management Endpoints
+class AddCustomModelRequest(BaseModel):
+    model_config = {"protected_namespaces": ()}
+    
+    name: str = Field(..., min_length=1, max_length=200)
+    file_path: str = Field(..., min_length=1)
+    model_type: Optional[str] = None  # If None, will auto-detect
+    precision: Optional[str] = None  # If None, will auto-detect
+    description: Optional[str] = None
+    thumbnail_path: Optional[str] = None
+
+@router.post("/custom-models")
+async def add_custom_model(request: AddCustomModelRequest):
+    """Add a new custom model"""
+    try:
+        from utils.model_detector import detect_model_type, get_supported_model_types
+        
+        # Verify file exists
+        file_path = Path(request.file_path)
+        if not file_path.exists():
+            raise HTTPException(status_code=400, detail="Model file not found")
+        
+        if not file_path.suffix.lower() == '.safetensors':
+            raise HTTPException(status_code=400, detail="Only .safetensors files are supported")
+        
+        # Auto-detect model type and precision if not provided
+        model_type = request.model_type
+        precision = request.precision
+        
+        if not model_type or not precision:
+            detected_type, detected_precision = detect_model_type(request.file_path)
+            
+            if not model_type:
+                model_type = detected_type
+            if not precision:
+                precision = detected_precision
+        
+        # Validate model type
+        supported_types = get_supported_model_types()
+        if model_type not in supported_types and model_type != "Unknown":
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Unsupported model type. Must be one of: {', '.join(supported_types)}"
+            )
+        
+        # Add to database
+        model_id = await db.add_custom_model(
+            name=request.name,
+            file_path=request.file_path,
+            model_type=model_type,
+            precision=precision,
+            description=request.description,
+            thumbnail_path=request.thumbnail_path
+        )
+        
+        return {
+            "success": True,
+            "model_id": model_id,
+            "detected_type": model_type,
+            "detected_precision": precision,
+            "message": "Custom model added successfully"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error adding custom model: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/custom-models")
+async def list_custom_models():
+    """Get all custom models"""
+    try:
+        models = await db.get_custom_models()
+        return {"models": models, "count": len(models)}
+    except Exception as e:
+        logger.error(f"Error listing custom models: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/custom-models/{model_id}")
+async def get_custom_model(model_id: int):
+    """Get specific custom model"""
+    try:
+        model = await db.get_custom_model_by_id(model_id)
+        if not model:
+            raise HTTPException(status_code=404, detail="Custom model not found")
+        return model
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting custom model: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/custom-models/{model_id}")
+async def delete_custom_model(model_id: int):
+    """Delete a custom model"""
+    try:
+        success = await db.delete_custom_model(model_id)
+        if not success:
+            raise HTTPException(status_code=404, detail="Custom model not found")
+        return {"success": True, "message": "Custom model deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting custom model: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/custom-models/model-types")
+async def get_supported_model_types_endpoint():
+    """Get list of supported model types"""
+    from utils.model_detector import get_supported_model_types, get_supported_precisions
+    return {
+        "model_types": get_supported_model_types(),
+        "precisions": get_supported_precisions()
+    }
+
+@router.post("/custom-models/detect")
+async def detect_model_type_endpoint(file_path: str):
+    """Detect model type and precision from file"""
+    try:
+        from utils.model_detector import detect_model_type
+        
+        if not Path(file_path).exists():
+            raise HTTPException(status_code=400, detail="File not found")
+        
+        model_type, precision = detect_model_type(file_path)
+        
+        return {
+            "model_type": model_type,
+            "precision": precision,
+            "file_path": file_path
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error detecting model type: {e}")
         raise HTTPException(status_code=500, detail=str(e))

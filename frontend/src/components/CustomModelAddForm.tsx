@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { FiPlus, FiX, FiFolder, FiImage } from 'react-icons/fi';
+import { FiPlus, FiFolder, FiImage } from 'react-icons/fi';
 import { open } from '@tauri-apps/plugin-dialog';
+import { apiService } from '../services/api';
 
 interface CustomModelAddFormProps {
   onSuccess: () => void;
@@ -13,24 +14,25 @@ export default function CustomModelAddForm({ onSuccess }: CustomModelAddFormProp
   const [precision, setPrecision] = useState('');
   const [description, setDescription] = useState('');
   const [thumbnailPath, setThumbnailPath] = useState('');
-  const [autoDetect, setAutoDetect] = useState(true);
+  const [isAdding, setIsAdding] = useState(false);
   const [isDetecting, setIsDetecting] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [availableModelTypes, setAvailableModelTypes] = useState<string[]>([]);
-  const [availablePrecisions, setAvailablePrecisions] = useState<string[]>([]);
+  const [autoDetect, setAutoDetect] = useState(true);
+  
+  const [modelTypes, setModelTypes] = useState<string[]>([]);
+  const [precisions, setPrecisions] = useState<string[]>([]);
 
   useEffect(() => {
-    loadSupportedTypes();
+    loadModelTypes();
   }, []);
 
-  const loadSupportedTypes = async () => {
+  const loadModelTypes = async () => {
     try {
       const response = await fetch('http://127.0.0.1:8000/api/custom-models/model-types');
       const data = await response.json();
-      setAvailableModelTypes(data.model_types);
-      setAvailablePrecisions(data.precisions);
+      setModelTypes(data.model_types);
+      setPrecisions(data.precisions);
     } catch (error) {
-      console.error('Error loading supported types:', error);
+      console.error('Error loading model types:', error);
     }
   };
 
@@ -38,25 +40,31 @@ export default function CustomModelAddForm({ onSuccess }: CustomModelAddFormProp
     try {
       const selected = await open({
         multiple: false,
-        filters: [{ name: 'Safetensors Files', extensions: ['safetensors'] }]
+        filters: [
+          {
+            name: 'Safetensors Files',
+            extensions: ['safetensors']
+          }
+        ]
       });
 
       if (selected && typeof selected === 'string') {
         setFilePath(selected);
         
-        // Auto-extract name from filename if name is empty
+        // Auto-fill name from filename if empty
         if (!name) {
           const filename = selected.split(/[\\/]/).pop()?.replace('.safetensors', '') || '';
           setName(filename);
         }
 
-        // Auto-detect if enabled
+        // Auto-detect model type if enabled
         if (autoDetect) {
           await detectModelType(selected);
         }
       }
     } catch (error) {
       console.error('Error selecting file:', error);
+      alert('Fehler beim Datei-Auswahl');
     }
   };
 
@@ -64,7 +72,12 @@ export default function CustomModelAddForm({ onSuccess }: CustomModelAddFormProp
     try {
       const selected = await open({
         multiple: false,
-        filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }]
+        filters: [
+          {
+            name: 'Image Files',
+            extensions: ['png', 'jpg', 'jpeg', 'webp']
+          }
+        ]
       });
 
       if (selected && typeof selected === 'string') {
@@ -76,24 +89,19 @@ export default function CustomModelAddForm({ onSuccess }: CustomModelAddFormProp
   };
 
   const detectModelType = async (path: string) => {
-    setIsDetecting(true);
     try {
+      setIsDetecting(true);
       const response = await fetch('http://127.0.0.1:8000/api/custom-models/detect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ file_path: path })
       });
-
-      if (!response.ok) {
-        throw new Error('Detection failed');
-      }
-
+      
       const data = await response.json();
       setModelType(data.model_type);
       setPrecision(data.precision);
     } catch (error) {
       console.error('Error detecting model type:', error);
-      alert('Fehler bei der automatischen Erkennung');
     } finally {
       setIsDetecting(false);
     }
@@ -101,25 +109,24 @@ export default function CustomModelAddForm({ onSuccess }: CustomModelAddFormProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!name || !filePath) {
-      alert('Bitte Name und Datei auswählen');
+    
+    if (!name.trim() || !filePath.trim()) {
+      alert('Name und Dateipfad sind erforderlich');
       return;
     }
 
-    setIsSaving(true);
-
     try {
+      setIsAdding(true);
       const response = await fetch('http://127.0.0.1:8000/api/custom-models', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name,
-          file_path: filePath,
-          model_type: autoDetect ? undefined : modelType,
-          precision: autoDetect ? undefined : precision,
-          description: description || undefined,
-          thumbnail_path: thumbnailPath || undefined
+          name: name.trim(),
+          file_path: filePath.trim(),
+          model_type: autoDetect ? null : modelType,
+          precision: autoDetect ? null : precision,
+          description: description.trim() || null,
+          thumbnail_path: thumbnailPath.trim() || null
         })
       });
 
@@ -128,6 +135,11 @@ export default function CustomModelAddForm({ onSuccess }: CustomModelAddFormProp
         throw new Error(error.detail || 'Fehler beim Hinzufügen');
       }
 
+      const data = await response.json();
+      
+      // Show detection results
+      alert(`Model hinzugefügt!\nTyp: ${data.detected_type}\nPräzision: ${data.detected_precision}`);
+
       // Reset form
       setName('');
       setFilePath('');
@@ -135,62 +147,65 @@ export default function CustomModelAddForm({ onSuccess }: CustomModelAddFormProp
       setPrecision('');
       setDescription('');
       setThumbnailPath('');
-      
+
       onSuccess();
-      alert('Custom Model erfolgreich hinzugefügt!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding custom model:', error);
-      alert(`Fehler: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`);
+      alert(error.message || 'Fehler beim Hinzufügen des Custom Models');
     } finally {
-      setIsSaving(false);
+      setIsAdding(false);
     }
   };
 
   return (
-    <div className="bg-dark-700 border border-dark-600 rounded-lg p-6 mb-6">
+    <form onSubmit={handleSubmit} className="bg-dark-700 border border-dark-600 rounded-lg p-6">
       <div className="flex items-center gap-2 mb-4">
         <FiPlus className="text-primary-500" />
-        <h2 className="text-xl font-bold text-white">Custom Model hinzufügen</h2>
+        <h2 className="text-xl font-bold text-white">Custom Model Hinzufügen</h2>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-4">
+        {/* File Path */}
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Model Datei (.safetensors) *
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={filePath}
+              onChange={(e) => setFilePath(e.target.value)}
+              placeholder="C:\path\to\model.safetensors"
+              className="flex-1 px-4 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary-500"
+              required
+            />
+            <button
+              type="button"
+              onClick={handleSelectFile}
+              className="px-4 py-2 bg-dark-600 hover:bg-dark-500 text-white rounded-lg transition-colors flex items-center gap-2"
+            >
+              <FiFolder />
+              Durchsuchen
+            </button>
+          </div>
+          <p className="mt-1 text-xs text-gray-500">
+            Unterstützt: FP32, FP16, BF16, FP8 Safetensors
+          </p>
+        </div>
+
         {/* Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             Name *
           </label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="z.B. Big Love XL V04"
+            placeholder="Mein Custom Model"
+            className="w-full px-4 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary-500"
             required
-            className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary-500"
           />
-        </div>
-
-        {/* File Path */}
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">
-            Model-Datei (.safetensors) *
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={filePath}
-              readOnly
-              placeholder="Datei auswählen..."
-              className="flex-1 px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none"
-            />
-            <button
-              type="button"
-              onClick={handleSelectFile}
-              className="px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition-colors flex items-center gap-2"
-            >
-              <FiFolder />
-              Durchsuchen
-            </button>
-          </div>
         </div>
 
         {/* Auto-Detect Toggle */}
@@ -200,80 +215,76 @@ export default function CustomModelAddForm({ onSuccess }: CustomModelAddFormProp
             id="autoDetect"
             checked={autoDetect}
             onChange={(e) => setAutoDetect(e.target.checked)}
-            className="w-4 h-4 text-primary-600 bg-dark-800 border-dark-600 rounded focus:ring-primary-500"
+            className="w-4 h-4"
           />
           <label htmlFor="autoDetect" className="text-sm text-gray-300">
-            Model-Typ und Präzision automatisch erkennen
+            Automatische Typ-Erkennung
           </label>
           {isDetecting && (
-            <span className="text-xs text-primary-400 animate-pulse">Erkenne...</span>
+            <span className="text-xs text-primary-400">Erkenne...</span>
           )}
         </div>
 
-        {/* Manual Model Type & Precision Selection (when auto-detect is off) */}
+        {/* Manual Model Type Selection */}
         {!autoDetect && (
-          <div className="grid grid-cols-2 gap-4">
+          <>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                Model-Typ
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Model Typ
               </label>
               <select
                 value={modelType}
                 onChange={(e) => setModelType(e.target.value)}
-                className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white focus:outline-none focus:border-primary-500"
+                className="w-full px-4 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white focus:outline-none focus:border-primary-500"
               >
-                <option value="">Wählen...</option>
-                {availableModelTypes.map((type) => (
+                <option value="">-- Typ auswählen --</option>
+                {modelTypes.map(type => (
                   <option key={type} value={type}>{type}</option>
                 ))}
               </select>
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Präzision
               </label>
               <select
                 value={precision}
                 onChange={(e) => setPrecision(e.target.value)}
-                className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white focus:outline-none focus:border-primary-500"
+                className="w-full px-4 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white focus:outline-none focus:border-primary-500"
               >
-                <option value="">Wählen...</option>
-                {availablePrecisions.map((prec) => (
+                <option value="">-- Präzision auswählen --</option>
+                {precisions.map(prec => (
                   <option key={prec} value={prec}>{prec}</option>
                 ))}
               </select>
             </div>
+          </>
+        )}
+
+        {/* Detected Type Display (when auto-detect) */}
+        {autoDetect && (modelType || precision) && (
+          <div className="p-3 bg-primary-500/10 border border-primary-500/50 rounded-lg">
+            <div className="text-sm text-primary-300">
+              <strong>Erkannt:</strong>
+              {modelType && <span className="ml-2">Typ: {modelType}</span>}
+              {precision && <span className="ml-2">Präzision: {precision}</span>}
+            </div>
           </div>
         )}
 
-        {/* Detected/Selected Type & Precision Display */}
-        {(modelType || precision) && (
-          <div className="flex gap-2">
-            {modelType && (
-              <span className="px-2.5 py-1 bg-primary-500/20 text-primary-400 rounded text-sm">
-                {modelType}
-              </span>
-            )}
-            {precision && (
-              <span className="px-2.5 py-1 bg-accent-500/20 text-accent-400 rounded text-sm">
-                {precision}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Optional Thumbnail */}
+        {/* Thumbnail (Optional) */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">
-            Vorschaubild (optional)
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Vorschau Thumbnail (Optional)
           </label>
           <div className="flex gap-2">
             <input
               type="text"
               value={thumbnailPath}
-              readOnly
-              placeholder="Optional: Thumbnail auswählen..."
-              className="flex-1 px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none"
+              onChange={(e) => setThumbnailPath(e.target.value)}
+              placeholder="C:\path\to\thumbnail.png"
+              className="flex-1 px-4 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary-500"
             />
             <button
               type="button"
@@ -283,42 +294,42 @@ export default function CustomModelAddForm({ onSuccess }: CustomModelAddFormProp
               <FiImage />
               Bild
             </button>
-            {thumbnailPath && (
-              <button
-                type="button"
-                onClick={() => setThumbnailPath('')}
-                className="px-3 py-2 bg-dark-600 hover:bg-red-600 text-gray-400 hover:text-white rounded-lg transition-colors"
-                title="Entfernen"
-              >
-                <FiX />
-              </button>
-            )}
           </div>
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">
-            Beschreibung (optional)
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Beschreibung (Optional)
           </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="z.B. Hochqualitatives SDXL Model für realistische Portraits..."
+            placeholder="Informationen über dieses Model..."
             rows={3}
-            className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 resize-none"
+            className="w-full px-4 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 resize-none"
           />
         </div>
 
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={isSaving || isDetecting || !name || !filePath}
-          className="w-full px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+          disabled={isAdding || !name.trim() || !filePath.trim()}
+          className="w-full px-4 py-3 bg-primary-600 hover:bg-primary-500 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          {isSaving ? 'Wird hinzugefügt...' : 'Custom Model hinzufügen'}
+          {isAdding ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Wird hinzugefügt...
+            </>
+          ) : (
+            <>
+              <FiPlus />
+              Custom Model Hinzufügen
+            </>
+          )}
         </button>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 }

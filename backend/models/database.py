@@ -72,6 +72,21 @@ class Database:
                 )
             """)
             
+            # Custom models table
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS custom_models (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    file_path TEXT NOT NULL UNIQUE,
+                    model_type TEXT NOT NULL,
+                    precision TEXT NOT NULL,
+                    description TEXT,
+                    thumbnail_path TEXT,
+                    is_active BOOLEAN DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            
             await db.commit()
             logger.info("Database initialized")
     
@@ -295,3 +310,62 @@ class Database:
         async with aiosqlite.connect(self.db_path) as db:
             await db.execute("UPDATE loras SET is_active = 0")
             await db.commit()
+    
+    # Custom Models Management Methods
+    async def add_custom_model(
+        self,
+        name: str,
+        file_path: str,
+        model_type: str,
+        precision: str,
+        description: Optional[str] = None,
+        thumbnail_path: Optional[str] = None
+    ) -> int:
+        """Add a new custom model"""
+        async with aiosqlite.connect(self.db_path) as db:
+            cursor = await db.execute("""
+                INSERT INTO custom_models (name, file_path, model_type, precision, description, thumbnail_path)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (name, file_path, model_type, precision, description, thumbnail_path))
+            await db.commit()
+            return cursor.lastrowid
+    
+    async def get_custom_models(self) -> List[Dict]:
+        """Get all custom models"""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute("""
+                SELECT * FROM custom_models ORDER BY created_at DESC
+            """) as cursor:
+                rows = await cursor.fetchall()
+                return [dict(row) for row in rows]
+    
+    async def get_custom_model_by_id(self, model_id: int) -> Optional[Dict]:
+        """Get custom model by ID"""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute("""
+                SELECT * FROM custom_models WHERE id = ?
+            """, (model_id,)) as cursor:
+                row = await cursor.fetchone()
+                return dict(row) if row else None
+    
+    async def delete_custom_model(self, model_id: int) -> bool:
+        """Delete a custom model"""
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute("DELETE FROM custom_models WHERE id = ?", (model_id,))
+            await db.commit()
+            return True
+    
+    async def set_custom_model_active(self, model_id: int, is_active: bool) -> bool:
+        """Set custom model active status"""
+        async with aiosqlite.connect(self.db_path) as db:
+            # Deactivate all custom models first if activating one
+            if is_active:
+                await db.execute("UPDATE custom_models SET is_active = 0")
+            
+            await db.execute("""
+                UPDATE custom_models SET is_active = ? WHERE id = ?
+            """, (1 if is_active else 0, model_id))
+            await db.commit()
+            return True

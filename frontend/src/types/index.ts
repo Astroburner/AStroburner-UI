@@ -31,6 +31,7 @@ export interface ModelInfo {
   name: string;
   type: string;
   loaded: boolean;
+  downloaded?: boolean;
 }
 
 export interface GPUInfo {

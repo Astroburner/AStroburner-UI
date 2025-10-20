@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiList, FiTrash2, FiRefreshCw, FiCheck, FiImage, FiDownload } from 'react-icons/fi';
+import { FiList, FiTrash2, FiRefreshCw, FiCheck, FiImage } from 'react-icons/fi';
 
 interface CustomModel {
   id: number;
@@ -60,27 +60,6 @@ export default function CustomModelList({ onModelsChanged }: CustomModelListProp
     }
   };
 
-  const handleLoadModel = async (model: CustomModel) => {
-    try {
-      const response = await fetch('http://127.0.0.1:8000/api/custom-models/load', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model_id: model.id })
-      });
-
-      if (!response.ok) {
-        throw new Error('Fehler beim Laden');
-      }
-
-      await loadModels();
-      onModelsChanged();
-      alert(`Custom Model "${model.name}" erfolgreich geladen!`);
-    } catch (error) {
-      console.error('Error loading custom model:', error);
-      alert('Fehler beim Laden des Custom Models');
-    }
-  };
-
   return (
     <div className="bg-dark-700 border border-dark-600 rounded-lg p-6">
       <div className="flex items-center justify-between mb-4">
@@ -121,84 +100,66 @@ export default function CustomModelList({ onModelsChanged }: CustomModelListProp
               <div className="flex gap-4">
                 {/* Thumbnail */}
                 {model.thumbnail_path ? (
-                  <div className="w-24 h-24 bg-dark-600 rounded-lg flex-shrink-0 overflow-hidden border border-dark-500">
+                  <div className="w-20 h-20 bg-dark-600 rounded-lg flex-shrink-0 overflow-hidden">
                     <img
-                      src={`http://127.0.0.1:8000/api/thumbnail?path=${encodeURIComponent(model.thumbnail_path)}`}
+                      src={`file://${model.thumbnail_path}`}
                       alt={model.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        const target = e.currentTarget;
-                        target.style.display = 'none';
-                        const parent = target.parentElement;
-                        if (parent) {
-                          parent.innerHTML = '<div class="w-full h-full flex items-center justify-center text-gray-500 text-2xl">🖼️</div>';
-                        }
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.parentElement!.innerHTML = `<div class="w-full h-full flex items-center justify-center"><span class="text-gray-500 text-2xl"><FiImage /></span></div>`;
                       }}
                     />
                   </div>
                 ) : (
-                  <div className="w-24 h-24 bg-dark-600 rounded-lg flex-shrink-0 flex items-center justify-center border border-dark-500">
-                    <FiImage className="text-gray-500 text-3xl" />
+                  <div className="w-20 h-20 bg-dark-600 rounded-lg flex-shrink-0 flex items-center justify-center">
+                    <FiImage className="text-gray-500 text-2xl" />
                   </div>
                 )}
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  {/* Header Row: Name + Status + Actions */}
-                  <div className="flex items-center justify-between gap-3 mb-2">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-white font-semibold text-lg">{model.name}</h3>
-                      {model.is_active && (
-                        <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs font-medium flex items-center gap-1 whitespace-nowrap">
-                          <FiCheck className="text-xs" />
-                          Aktiv
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-white font-medium">{model.name}</h3>
+                        {model.is_active && (
+                          <span className="px-2 py-0.5 bg-green-500/20 text-green-400 rounded text-xs font-medium flex items-center gap-1">
+                            <FiCheck className="text-xs" />
+                            Aktiv
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="px-2 py-0.5 bg-primary-500/20 text-primary-400 rounded text-xs font-medium">
+                          {model.model_type}
                         </span>
+                        <span className="px-2 py-0.5 bg-accent-500/20 text-accent-400 rounded text-xs font-medium">
+                          {model.precision}
+                        </span>
+                      </div>
+
+                      {model.description && (
+                        <p className="text-sm text-gray-400 mb-2">{model.description}</p>
                       )}
+
+                      <div className="text-xs text-gray-500 truncate">
+                        {model.file_path}
+                      </div>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <button
-                        onClick={() => handleLoadModel(model)}
-                        disabled={model.is_active}
-                        className="px-3 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg text-sm transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                        title={model.is_active ? "Bereits geladen" : "Model laden"}
-                      >
-                        <FiDownload className="text-sm" />
-                        Laden
-                      </button>
-                      <button
-                        onClick={() => handleDelete(model)}
-                        className="px-3 py-2 bg-dark-600 hover:bg-red-600 text-gray-400 hover:text-white rounded-lg text-sm transition-colors flex items-center gap-2"
-                        title="Löschen"
-                      >
-                        <FiTrash2 className="text-sm" />
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {/* Badges Row */}
-                  <div className="flex items-center gap-2 mb-3 flex-wrap">
-                    <span className="px-2.5 py-1 bg-primary-500/20 text-primary-400 rounded-md text-sm font-medium whitespace-nowrap">
-                      {model.model_type}
-                    </span>
-                    <span className="px-2.5 py-1 bg-accent-500/20 text-accent-400 rounded-md text-sm font-medium whitespace-nowrap">
-                      {model.precision}
-                    </span>
+                    {/* Actions */}
+                    <button
+                      onClick={() => handleDelete(model)}
+                      className="px-3 py-1.5 bg-dark-600 hover:bg-red-600 text-gray-400 hover:text-white rounded-lg text-sm transition-colors flex items-center justify-center gap-1"
+                      title="Löschen"
+                    >
+                      <FiTrash2 className="text-xs" />
+                    </button>
                   </div>
 
-                  {/* Description */}
-                  {model.description && (
-                    <p className="text-sm text-gray-300 mb-2 leading-relaxed">{model.description}</p>
-                  )}
-
-                  {/* File Path */}
-                  <div className="text-xs text-gray-500 mb-2 break-all">
-                    📁 {model.file_path}
-                  </div>
-
-                  {/* Date */}
-                  <div className="text-xs text-gray-600">
+                  <div className="text-xs text-gray-500">
                     Hinzugefügt: {new Date(model.created_at).toLocaleDateString('de-DE')}
                   </div>
                 </div>

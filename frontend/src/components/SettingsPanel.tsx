@@ -5,8 +5,10 @@ import { apiService } from '../services/api';
 import type { AppStats } from '../types';
 import LoRAAddForm from './LoRAAddForm';
 import LoRAList from './LoRAList';
+import CustomModelAddForm from './CustomModelAddForm';
+import CustomModelList from './CustomModelList';
 
-type SettingsTab = 'models' | 'loras';
+type SettingsTab = 'models' | 'loras' | 'custom-models';
 
 export default function SettingsPanel() {
   const { models, setModels, currentModel, setCurrentModel, setIsLoadingModel, isLoadingModel } =
@@ -107,6 +109,17 @@ export default function SettingsPanel() {
             <FiPackage />
             LoRAs
           </button>
+          <button
+            onClick={() => setActiveTab('custom-models')}
+            className={`px-6 py-3 font-medium transition-colors flex items-center gap-2 ${
+              activeTab === 'custom-models'
+                ? 'text-primary-400 border-b-2 border-primary-500'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <FiDownload />
+            Custom Models
+          </button>
         </div>
 
         {/* Statistics - Always visible */}
@@ -177,9 +190,23 @@ export default function SettingsPanel() {
                     : 'bg-dark-800 border-dark-600 hover:border-dark-500'
                 }`}
               >
-                <div>
-                  <div className="text-white font-medium">{model.name}</div>
-                  <div className="text-sm text-gray-400">{model.type}</div>
+                <div className="flex items-center gap-3">
+                  {/* Downloaded Indicator */}
+                  <div className="relative">
+                    <div className={`w-3 h-3 rounded-full ${
+                      model.downloaded 
+                        ? 'bg-green-500 shadow-lg shadow-green-500/50' 
+                        : 'bg-gray-600'
+                    }`} title={model.downloaded ? 'Heruntergeladen' : 'Nicht heruntergeladen'}>
+                      {model.downloaded && (
+                        <div className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75"></div>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-white font-medium">{model.name}</div>
+                    <div className="text-sm text-gray-400">{model.type}</div>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   {model.loaded ? (
@@ -243,7 +270,7 @@ export default function SettingsPanel() {
           <div className="text-gray-300 space-y-2 text-sm">
             <div className="flex justify-between">
               <span>Version:</span>
-              <span className="font-medium">1.6.0</span>
+              <span className="font-medium">1.9.0</span>
             </div>
             <div className="flex justify-between">
               <span>Build:</span>
@@ -259,6 +286,14 @@ export default function SettingsPanel() {
           <>
             <LoRAAddForm onSuccess={handleLoRAsChanged} />
             <LoRAList onLoRAsChanged={handleLoRAsChanged} />
+          </>
+        )}
+
+        {/* Custom Models Tab Content */}
+        {activeTab === 'custom-models' && (
+          <>
+            <CustomModelAddForm onSuccess={loadModels} />
+            <CustomModelList onModelsChanged={loadModels} />
           </>
         )}
       </div>
