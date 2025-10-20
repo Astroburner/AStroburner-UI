@@ -79,6 +79,7 @@ class ModelManager:
         self.img2img_pipeline: Optional[Any] = None
         self.device = gpu_monitor.get_optimal_device()
         self.dtype = torch.float16 if self.device == "cuda" else torch.float32
+        self.loaded_loras: list = []  # Track loaded LoRAs
         
     def load_model(self, model_key: str) -> Dict:
         """Load a model with optimization"""
@@ -325,6 +326,88 @@ class ModelManager:
                 for key, info in self.AVAILABLE_MODELS.items()
             ]
         }
+    
+    def load_loras(self, loras: list) -> Dict:
+        """Load multiple LoRAs (up to 5) into the pipeline"""
+        try:
+            if self.pipeline is None:
+                return {"success": False, "error": "No model loaded"}
+            
+            if len(loras) > 5:
+                return {"success": False, "error": "Maximum 5 LoRAs can be loaded at once"}
+            
+            # Unload existing LoRAs first
+            self.unload_all_loras()
+            
+            # Load each LoRA
+            for lora in loras:
+                file_path = lora.get("file_path")
+                weight = lora.get("weight", 1.0)
+                lora_name = lora.get("name", "lora")
+                
+                if not Path(file_path).exists():
+                    logger.warning(f"LoRA file not found: {file_path}")
+                    continue
+                
+                try:
+                    # Load LoRA weights
+                    logger.info(f"Loading LoRA: {lora_name} from {file_path} with weight {weight}")
+                    
+                    # For diffusers pipelines, load LoRA weights
+                    self.pipeline.load_lora_weights(
+                        file_path,
+                        weight_name=Path(file_path).name,
+                        adapter_name=lora_name
+                    )
+                    
+                    # Set LoRA weight
+                    self.pipeline.set_adapters([lora_name], adapter_weights=[weight])
+                    
+                    # Same for img2img pipeline if exists
+                    if self.img2img_pipeline:
+                        self.img2img_pipeline.load_lora_weights(
+                            file_path,
+                            weight_name=Path(file_path).name,
+                            adapter_name=lora_name
+                        )
+                        self.img2img_pipeline.set_adapters([lora_name], adapter_weights=[weight])
+                    
+                    self.loaded_loras.append(lora)
+                    logger.info(f"LoRA loaded successfully: {lora_name}")
+                    
+                except Exception as e:
+                    logger.error(f"Error loading LoRA {lora_name}: {e}")
+                    continue
+            
+            return {
+                "success": True,
+                "loaded_count": len(self.loaded_loras),
+                "loras": [l.get("name") for l in self.loaded_loras]
+            }
+            
+        except Exception as e:
+            logger.error(f"Error loading LoRAs: {e}")
+            return {"success": False, "error": str(e)}
+    
+    def unload_all_loras(self):
+        """Unload all LoRAs from the pipeline"""
+        try:
+            if self.pipeline and hasattr(self.pipeline, 'unload_lora_weights'):
+                self.pipeline.unload_lora_weights()
+                logger.info("Unloaded all LoRAs from txt2img pipeline")
+            
+            if self.img2img_pipeline and hasattr(self.img2img_pipeline, 'unload_lora_weights'):
+                self.img2img_pipeline.unload_lora_weights()
+                logger.info("Unloaded all LoRAs from img2img pipeline")
+            
+            self.loaded_loras = []
+            
+        except Exception as e:
+            logger.warning(f"Error unloading LoRAs: {e}")
+    
+    def get_loaded_loras(self) -> list:
+        """Get list of currently loaded LoRAs"""
+        return self.loaded_loras
 
 # Global instance
 model_manager = ModelManager()

@@ -40,6 +40,24 @@ class LoadModelRequest(BaseModel):
     
     model_key: str
 
+class AddLoRARequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    file_path: str = Field(..., min_length=1)
+    model_type: str = Field(..., min_length=1)
+    trigger_words: Optional[str] = None
+    description: Optional[str] = None
+    weight: float = Field(default=1.0, ge=0.0, le=2.0)
+
+class UpdateLoRARequest(BaseModel):
+    name: Optional[str] = None
+    trigger_words: Optional[str] = None
+    description: Optional[str] = None
+    weight: Optional[float] = Field(default=None, ge=0.0, le=2.0)
+
+class SetLoRAActiveRequest(BaseModel):
+    is_active: bool
+    weight: Optional[float] = Field(default=None, ge=0.0, le=2.0)
+
 # API Routes
 @router.get("/health")
 async def health_check():
@@ -222,4 +240,135 @@ async def get_stats():
         }
     except Exception as e:
         logger.error(f"Error fetching stats: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# LoRA Management Endpoints
+@router.post("/loras")
+async def add_lora(request: AddLoRARequest):
+    """Add a new LoRA"""
+    try:
+        # Verify file exists
+        if not Path(request.file_path).exists():
+            raise HTTPException(status_code=400, detail="LoRA file not found")
+        
+        lora_id = await db.add_lora(
+            name=request.name,
+            file_path=request.file_path,
+            model_type=request.model_type,
+            trigger_words=request.trigger_words,
+            description=request.description,
+            weight=request.weight
+        )
+        
+        return {
+            "success": True,
+            "lora_id": lora_id,
+            "message": "LoRA added successfully"
+        }
+    except Exception as e:
+        logger.error(f"Error adding LoRA: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/loras")
+async def list_loras(model_type: Optional[str] = None):
+    """Get all LoRAs, optionally filtered by model type"""
+    try:
+        loras = await db.get_loras(model_type)
+        return {"loras": loras, "count": len(loras)}
+    except Exception as e:
+        logger.error(f"Error listing LoRAs: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/loras/active")
+async def get_active_loras():
+    """Get all active LoRAs"""
+    try:
+        loras = await db.get_active_loras()
+        return {"loras": loras, "count": len(loras)}
+    except Exception as e:
+        logger.error(f"Error getting active LoRAs: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.patch("/loras/{lora_id}")
+async def update_lora(lora_id: int, request: UpdateLoRARequest):
+    """Update LoRA details"""
+    try:
+        success = await db.update_lora(
+            lora_id=lora_id,
+            name=request.name,
+            trigger_words=request.trigger_words,
+            description=request.description,
+            weight=request.weight
+        )
+        
+        if not success:
+            raise HTTPException(status_code=404, detail="LoRA not found or no changes made")
+        
+        return {"success": True, "message": "LoRA updated successfully"}
+    except Exception as e:
+        logger.error(f"Error updating LoRA: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.patch("/loras/{lora_id}/activate")
+async def set_lora_active(lora_id: int, request: SetLoRAActiveRequest):
+    """Activate or deactivate a LoRA"""
+    try:
+        # Update weight if provided
+        if request.weight is not None:
+            await db.update_lora(lora_id=lora_id, weight=request.weight)
+        
+        # Set active status
+        success = await db.set_lora_active(lora_id, request.is_active)
+        
+        if not success:
+            if request.is_active:
+                raise HTTPException(status_code=400, detail="Maximum 5 LoRAs can be active at once")
+            else:
+                raise HTTPException(status_code=404, detail="LoRA not found")
+        
+        # Load/unload LoRA in model manager
+        if request.is_active:
+            active_loras = await db.get_active_loras()
+            model_manager.load_loras(active_loras)
+        else:
+            active_loras = await db.get_active_loras()
+            model_manager.load_loras(active_loras)
+        
+        return {
+            "success": True,
+            "message": f"LoRA {'activated' if request.is_active else 'deactivated'} successfully"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error setting LoRA active status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/loras/{lora_id}")
+async def delete_lora(lora_id: int):
+    """Delete a LoRA"""
+    try:
+        success = await db.delete_lora(lora_id)
+        
+        if not success:
+            raise HTTPException(status_code=404, detail="LoRA not found")
+        
+        # Reload active LoRAs
+        active_loras = await db.get_active_loras()
+        model_manager.load_loras(active_loras)
+        
+        return {"success": True, "message": "LoRA deleted successfully"}
+    except Exception as e:
+        logger.error(f"Error deleting LoRA: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/loras/deactivate-all")
+async def deactivate_all_loras():
+    """Deactivate all LoRAs"""
+    try:
+        await db.deactivate_all_loras()
+        model_manager.unload_all_loras()
+        return {"success": True, "message": "All LoRAs deactivated"}
+    except Exception as e:
+        logger.error(f"Error deactivating all LoRAs: {e}")
         raise HTTPException(status_code=500, detail=str(e))

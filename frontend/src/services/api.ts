@@ -5,7 +5,11 @@ import type {
   ModelInfo,
   GPUInfo,
   Generation,
-  AppStats
+  AppStats,
+  LoRA,
+  AddLoRARequest,
+  UpdateLoRARequest,
+  SetLoRAActiveRequest
 } from '../types';
 
 const API_BASE_URL = 'http://127.0.0.1:8000/api';
@@ -82,6 +86,42 @@ export const apiService = {
   // Stats
   async getStats(): Promise<AppStats> {
     const response = await api.get('/stats');
+    return response.data;
+  },
+
+  // LoRA Management
+  async addLoRA(params: AddLoRARequest) {
+    const response = await api.post('/loras', params);
+    return response.data;
+  },
+
+  async listLoRAs(modelType?: string): Promise<{ loras: LoRA[]; count: number }> {
+    const response = await api.get('/loras', { params: modelType ? { model_type: modelType } : {} });
+    return response.data;
+  },
+
+  async getActiveLoRAs(): Promise<{ loras: LoRA[]; count: number }> {
+    const response = await api.get('/loras/active');
+    return response.data;
+  },
+
+  async updateLoRA(id: number, params: UpdateLoRARequest) {
+    const response = await api.patch(`/loras/${id}`, params);
+    return response.data;
+  },
+
+  async setLoRAActive(id: number, params: SetLoRAActiveRequest) {
+    const response = await api.patch(`/loras/${id}/activate`, params);
+    return response.data;
+  },
+
+  async deleteLoRA(id: number) {
+    const response = await api.delete(`/loras/${id}`);
+    return response.data;
+  },
+
+  async deactivateAllLoRAs() {
+    const response = await api.post('/loras/deactivate-all');
     return response.data;
   },
 };

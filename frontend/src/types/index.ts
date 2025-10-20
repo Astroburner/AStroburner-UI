@@ -76,3 +76,36 @@ export interface AppStats {
   };
   gpu: GPUInfo;
 }
+
+export interface LoRA {
+  id: number;
+  name: string;
+  file_path: string;
+  model_type: string;
+  trigger_words: string | null;
+  description: string | null;
+  weight: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface AddLoRARequest {
+  name: string;
+  file_path: string;
+  model_type: string;
+  trigger_words?: string;
+  description?: string;
+  weight?: number;
+}
+
+export interface UpdateLoRARequest {
+  name?: string;
+  trigger_words?: string;
+  description?: string;
+  weight?: number;
+}
+
+export interface SetLoRAActiveRequest {
+  is_active: boolean;
+  weight?: number;
+}
