@@ -1,4 +1,5 @@
 @echo off
+SETLOCAL EnableDelayedExpansion
 
 REM Force script to run in its own directory
 cd /d "%~dp0"
@@ -196,7 +197,7 @@ echo.
 echo [3/6] Installing PyTorch with CUDA support...
 echo.
 
-REM Detect GPU and suggest CUDA version
+REM Detect GPU and auto-suggest CUDA version
 nvidia-smi >nul 2>&1
 if %errorlevel% neq 0 (
     echo No NVIDIA GPU detected. Installing PyTorch for CPU...
@@ -204,21 +205,63 @@ if %errorlevel% neq 0 (
 ) else (
     echo NVIDIA GPU detected!
     echo.
-    echo Which GPU series do you have?
+    
+    REM Try to detect GPU model automatically
+    for /f "tokens=*" %%i in ('nvidia-smi --query-gpu=name --format=csv,noheader') do set GPU_NAME=%%i
+    
+    echo Detected GPU: %GPU_NAME%
     echo.
-    echo 1. RTX 5090 / RTX 50-series (CUDA 12.8^)
+    
+    REM Auto-suggest based on GPU name
+    set SUGGESTED_CUDA=
+    echo %GPU_NAME% | findstr /i "5090 50" >nul && set SUGGESTED_CUDA=1
+    echo %GPU_NAME% | findstr /i "4090 4080 40" >nul && set SUGGESTED_CUDA=2
+    echo %GPU_NAME% | findstr /i "3090 3080 30" >nul && set SUGGESTED_CUDA=3
+    
+    if defined SUGGESTED_CUDA (
+        if "%SUGGESTED_CUDA%"=="1" (
+            echo [AUTO-DETECTED] RTX 50-series → Recommended: CUDA 12.8
+        )
+        if "%SUGGESTED_CUDA%"=="2" (
+            echo [AUTO-DETECTED] RTX 40-series → Recommended: CUDA 12.1
+        )
+        if "%SUGGESTED_CUDA%"=="3" (
+            echo [AUTO-DETECTED] RTX 30-series → Recommended: CUDA 11.8
+        )
+    ) else (
+        echo [INFO] Could not auto-detect GPU series
+    )
+    
+    echo.
+    echo Which CUDA version should I install?
+    echo.
+    if defined SUGGESTED_CUDA (
+        echo %SUGGESTED_CUDA%. RTX 5090 / RTX 50-series (CUDA 12.8^) [RECOMMENDED]
+    ) else (
+        echo 1. RTX 5090 / RTX 50-series (CUDA 12.8^)
+    )
     echo 2. RTX 4090 / RTX 40-series (CUDA 12.1^)
     echo 3. RTX 3090 / RTX 30-series (CUDA 11.8^)
     echo 4. CPU only (no GPU^)
     echo 5. Let me install manually later
     echo.
-    choice /C 12345 /M "Select your GPU"
     
-    if errorlevel 5 goto :install_pytorch_skip
-    if errorlevel 4 goto :install_pytorch_cpu
-    if errorlevel 3 goto :install_pytorch_cu118
-    if errorlevel 2 goto :install_pytorch_cu121
-    if errorlevel 1 goto :install_pytorch_cu128
+    if defined SUGGESTED_CUDA (
+        echo Press ENTER to use recommended option [%SUGGESTED_CUDA%]
+        echo Or select: [1-5]
+        echo.
+        set /p CUDA_CHOICE="Choice: "
+        if "!CUDA_CHOICE!"=="" set CUDA_CHOICE=%SUGGESTED_CUDA%
+    ) else (
+        choice /C 12345 /M "Select your GPU"
+        set CUDA_CHOICE=!ERRORLEVEL!
+    )
+    
+    if "%CUDA_CHOICE%"=="5" goto :install_pytorch_skip
+    if "%CUDA_CHOICE%"=="4" goto :install_pytorch_cpu
+    if "%CUDA_CHOICE%"=="3" goto :install_pytorch_cu118
+    if "%CUDA_CHOICE%"=="2" goto :install_pytorch_cu121
+    if "%CUDA_CHOICE%"=="1" goto :install_pytorch_cu128
 
     :install_pytorch_cu128
     echo Installing PyTorch for CUDA 12.8...
@@ -249,15 +292,115 @@ if %errorlevel% neq 0 (
 )
 
 :verify_pytorch
-REM Verify PyTorch installation
+REM Verify PyTorch installation with detailed CUDA check
 echo.
-echo Verifying PyTorch installation...
-python -c "import torch; print(f'PyTorch {torch.__version__} installed'); print(f'CUDA available: {torch.cuda.is_available()}')" 2>nul
+echo ========================================
+echo    Verifying PyTorch + CUDA Installation
+echo ========================================
+echo.
+
+python -c "import torch; print('=' * 50); print('PyTorch Version:', torch.__version__); print('CUDA Available:', torch.cuda.is_available()); print('CUDA Version:', torch.version.cuda if torch.cuda.is_available() else 'N/A'); print('GPU Count:', torch.cuda.device_count() if torch.cuda.is_available() else 0); print('GPU Name:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'N/A'); print('GPU Memory:', f'{torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB' if torch.cuda.is_available() else 'N/A'); print('Compute Capability:', f'{torch.cuda.get_device_capability(0)[0]}.{torch.cuda.get_device_capability(0)[1]}' if torch.cuda.is_available() else 'N/A'); print('=' * 50)" 2>nul
+
 if %errorlevel% neq 0 (
     echo [WARNING] PyTorch verification failed
-    echo You may need to install it manually
+    echo.
+    echo This might mean:
+    echo - PyTorch is not installed correctly
+    echo - CUDA runtime mismatch
+    echo.
+    echo You can try to fix this later with: backend\fix_cuda.bat
+    echo.
 ) else (
-    echo [OK] PyTorch installed successfully
+    echo.
+    echo [OK] PyTorch verification successful!
+    echo.
+    
+    REM Check if CUDA is actually enabled
+    python -c "import torch; import sys; sys.exit(0 if torch.cuda.is_available() else 1)" 2>nul
+    if %errorlevel% neq 0 (
+        echo.
+        echo ========================================
+        echo    WARNING: CUDA NOT DETECTED!
+        echo ========================================
+        echo.
+        echo PyTorch is installed but CUDA is FALSE (CPU-only mode^)
+        echo.
+        echo This means you have the wrong PyTorch version!
+        echo Your GPU will NOT be used for generation.
+        echo.
+        echo ========================================
+        echo    AUTOMATIC FIX
+        echo ========================================
+        echo.
+        echo I can automatically reinstall PyTorch with CUDA 12.8
+        echo for your RTX 5090 right now.
+        echo.
+        choice /C YN /M "Fix CUDA installation now"
+        
+        if errorlevel 2 (
+            echo.
+            echo CUDA fix skipped. You can run it later with:
+            echo   backend\fix_cuda.bat
+            echo.
+        ) else (
+            echo.
+            echo ========================================
+            echo    FIXING CUDA INSTALLATION...
+            echo ========================================
+            echo.
+            echo [1/3] Uninstalling CPU-only PyTorch...
+            pip uninstall torch torchvision torchaudio -y
+            
+            echo.
+            echo [2/3] Installing PyTorch with CUDA 12.8...
+            echo This will download ~2-3 GB...
+            echo.
+            pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+            
+            echo.
+            echo [3/3] Verifying CUDA installation...
+            echo.
+            python -c "import torch; print('=' * 50); print('PyTorch Version:', torch.__version__); print('CUDA Available:', torch.cuda.is_available()); print('CUDA Version:', torch.version.cuda if torch.cuda.is_available() else 'N/A'); print('GPU Count:', torch.cuda.device_count() if torch.cuda.is_available() else 0); print('GPU Name:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'N/A'); print('GPU Memory:', f'{torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB' if torch.cuda.is_available() else 'N/A'); print('Compute Capability:', f'{torch.cuda.get_device_capability(0)[0]}.{torch.cuda.get_device_capability(0)[1]}' if torch.cuda.is_available() else 'N/A'); print('=' * 50)"
+            
+            python -c "import torch; import sys; sys.exit(0 if torch.cuda.is_available() else 1)" 2>nul
+            if %errorlevel% equ 0 (
+                echo.
+                echo ========================================
+                echo    CUDA FIX SUCCESSFUL!
+                echo ========================================
+                echo.
+                echo Your RTX 5090 is now properly configured!
+                echo GPU acceleration is ENABLED!
+                echo.
+            ) else (
+                echo.
+                echo ========================================
+                echo    CUDA FIX FAILED
+                echo ========================================
+                echo.
+                echo CUDA is still not detected.
+                echo.
+                echo Possible causes:
+                echo - NVIDIA drivers not installed or outdated
+                echo - CUDA runtime mismatch
+                echo - System requires restart after driver install
+                echo.
+                echo Try these steps:
+                echo 1. Update NVIDIA drivers: https://www.nvidia.com/drivers
+                echo 2. Restart your computer
+                echo 3. Run backend\fix_cuda.bat again
+                echo.
+            )
+        )
+    ) else (
+        echo.
+        echo ========================================
+        echo    GPU ACCELERATION ENABLED! 🚀
+        echo ========================================
+        echo.
+        echo Your RTX 5090 is ready for AI generation!
+        echo.
+    )
 )
 
 :skip_pytorch
