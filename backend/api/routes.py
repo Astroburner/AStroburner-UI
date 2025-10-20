@@ -151,7 +151,9 @@ async def generate_image(request: GenerateImageRequest, background_tasks: Backgr
                 steps=request.num_inference_steps,
                 guidance_scale=request.guidance_scale,
                 seed=request.seed,
-                file_path=str(file_path)
+                file_path=str(file_path),
+                scheduler=request.scheduler,
+                denoise_strength=request.denoise_strength if request.input_image else None
             )
             
             images_data.append({

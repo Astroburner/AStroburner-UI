@@ -126,7 +126,7 @@ export default function HistoryPanel() {
         </div>
       </div>
 
-      {/* History List */}
+      {/* History List - NEUE KOMPAKTE LAYOUT */}
       <div className="flex-1 overflow-auto p-4">
         {generations.length === 0 ? (
           <div className="text-center text-gray-500 py-12">
@@ -134,22 +134,23 @@ export default function HistoryPanel() {
             <p>Keine Generationen gefunden</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             {generations.map((gen) => (
               <div
                 key={gen.id}
                 className="bg-dark-700 border border-dark-600 rounded-lg p-4 hover:border-primary-500 transition-colors"
               >
-                <div className="flex gap-4">
-                  {/* Thumbnail */}
-                  <div className="w-24 h-24 bg-dark-600 rounded-lg flex-shrink-0 overflow-hidden">
+                {/* Header mit Thumbnail und Actions */}
+                <div className="flex gap-3 mb-3">
+                  {/* Thumbnail - Kleinere, kompaktere Größe */}
+                  <div className="w-20 h-20 bg-dark-600 rounded-lg flex-shrink-0 overflow-hidden">
                     {gen.file_path ? (
                       <img
                         src={`http://127.0.0.1:8000/outputs/${getFilename(gen.file_path)}`}
                         alt={gen.prompt}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => window.open(`http://127.0.0.1:8000/outputs/${getFilename(gen.file_path)}`, '_blank')}
                         onError={(e) => {
-                          // Fallback wenn Bild nicht laden kann
                           e.currentTarget.style.display = 'none';
                           e.currentTarget.parentElement!.classList.add('flex', 'items-center', 'justify-center');
                           e.currentTarget.parentElement!.innerHTML = `<span class="text-gray-500 text-xs">${gen.width}x${gen.height}</span>`;
@@ -162,46 +163,84 @@ export default function HistoryPanel() {
                     )}
                   </div>
 
-                  {/* Info */}
+                  {/* Prompt und Actions */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="text-white font-medium truncate">{gen.prompt}</h3>
-                      <div className="flex gap-2 flex-shrink-0">
+                      <h3 className="text-white font-medium text-sm line-clamp-2" title={gen.prompt}>
+                        {gen.prompt}
+                      </h3>
+                      <div className="flex gap-1 flex-shrink-0">
                         <button
                           onClick={() => handleDownload(gen)}
-                          className="text-green-400 hover:text-green-300 transition-colors"
+                          className="p-2 text-green-400 hover:text-green-300 hover:bg-dark-600 rounded transition-colors"
                           title="Herunterladen"
                         >
-                          <FiDownload />
+                          <FiDownload size={16} />
                         </button>
                         <button
                           onClick={() => handleDelete(gen.id)}
-                          className="text-red-400 hover:text-red-300 transition-colors"
+                          className="p-2 text-red-400 hover:text-red-300 hover:bg-dark-600 rounded transition-colors"
                           title="Löschen"
                         >
-                          <FiTrash2 />
+                          <FiTrash2 size={16} />
                         </button>
                       </div>
                     </div>
                     
-                    <div className="text-sm text-gray-400 space-y-1">
-                      <div>Model: <span className="text-gray-300">{gen.model_key}</span></div>
-                      <div>
-                        Size: <span className="text-gray-300">{gen.width}x{gen.height}</span>
-                        {' • '}
-                        Steps: <span className="text-gray-300">{gen.steps}</span>
-                        {' • '}
-                        Guidance: <span className="text-gray-300">{gen.guidance_scale}</span>
-                      </div>
-                      {gen.seed && (
-                        <div>Seed: <span className="text-gray-300">{gen.seed}</span></div>
-                      )}
-                      <div className="text-xs text-gray-500">
-                        {new Date(gen.created_at).toLocaleString('de-DE')}
-                      </div>
+                    {/* Datum */}
+                    <div className="text-xs text-gray-500">
+                      {new Date(gen.created_at).toLocaleString('de-DE')}
                     </div>
                   </div>
                 </div>
+
+                {/* Details Grid - Kompakt in 2 Spalten */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                  {/* Linke Spalte */}
+                  <div className="space-y-1">
+                    <div className="text-gray-400">
+                      Model: <span className="text-gray-300">{gen.model_key}</span>
+                    </div>
+                    <div className="text-gray-400">
+                      Size: <span className="text-gray-300">{gen.width}x{gen.height}</span>
+                    </div>
+                    <div className="text-gray-400">
+                      Steps: <span className="text-gray-300">{gen.steps}</span>
+                    </div>
+                    {gen.seed && (
+                      <div className="text-gray-400">
+                        Seed: <span className="text-gray-300">{gen.seed}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Rechte Spalte */}
+                  <div className="space-y-1">
+                    <div className="text-gray-400">
+                      CFG: <span className="text-gray-300">{gen.guidance_scale.toFixed(1)}</span>
+                    </div>
+                    {gen.scheduler && (
+                      <div className="text-gray-400">
+                        Scheduler: <span className="text-gray-300">{gen.scheduler}</span>
+                      </div>
+                    )}
+                    {gen.denoise_strength !== null && gen.denoise_strength !== undefined && (
+                      <div className="text-gray-400">
+                        Denoise: <span className="text-gray-300">{gen.denoise_strength.toFixed(2)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Negative Prompt - Wenn vorhanden */}
+                {gen.negative_prompt && (
+                  <div className="mt-3 pt-3 border-t border-dark-600">
+                    <div className="text-xs text-gray-400 mb-1">Negative Prompt:</div>
+                    <div className="text-xs text-gray-300 line-clamp-2" title={gen.negative_prompt}>
+                      {gen.negative_prompt}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

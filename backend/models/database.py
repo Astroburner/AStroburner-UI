@@ -30,9 +30,24 @@ class Database:
                     file_path TEXT NOT NULL,
                     thumbnail_path TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    metadata TEXT
+                    metadata TEXT,
+                    scheduler TEXT,
+                    denoise_strength REAL
                 )
             """)
+            
+            # Migration: Add new columns if they don't exist (for existing databases)
+            try:
+                await db.execute("ALTER TABLE generations ADD COLUMN scheduler TEXT")
+                logger.info("Added scheduler column to generations table")
+            except:
+                pass  # Column already exists
+            
+            try:
+                await db.execute("ALTER TABLE generations ADD COLUMN denoise_strength REAL")
+                logger.info("Added denoise_strength column to generations table")
+            except:
+                pass  # Column already exists
             
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS settings (
@@ -57,19 +72,23 @@ class Database:
         seed: Optional[int],
         file_path: str,
         thumbnail_path: Optional[str] = None,
-        metadata: Optional[Dict] = None
+        metadata: Optional[Dict] = None,
+        scheduler: Optional[str] = None,
+        denoise_strength: Optional[float] = None
     ) -> int:
         """Save generation to database"""
         async with aiosqlite.connect(self.db_path) as db:
             cursor = await db.execute("""
                 INSERT INTO generations (
                     prompt, negative_prompt, model_key, width, height,
-                    steps, guidance_scale, seed, file_path, thumbnail_path, metadata
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    steps, guidance_scale, seed, file_path, thumbnail_path, 
+                    metadata, scheduler, denoise_strength
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 prompt, negative_prompt, model_key, width, height,
                 steps, guidance_scale, seed, file_path, thumbnail_path,
-                json.dumps(metadata) if metadata else None
+                json.dumps(metadata) if metadata else None,
+                scheduler, denoise_strength
             ))
             await db.commit()
             return cursor.lastrowid

@@ -2,6 +2,68 @@
 
 All notable changes to AI Studio will be documented in this file.
 
+## [v1.5.0] - 2025-10-20
+
+### 🎨 Major UI/UX Improvements - History Panel Redesign
+- **Compact Layout**: Redesigned History Panel to be significantly more compact
+  - All information now visible on single screen (no more excessive scrolling)
+  - Grid layout: 1 column on small screens, 2 columns on XL screens
+  - Smaller thumbnail size (80x80 → more space efficient)
+  - Optimized spacing and padding throughout
+
+### ✨ New Features - Enhanced History Information
+- **Download Button Per Image**: Each history entry now has its own download button
+  - Quick access: Download directly from history without opening full view
+  - Green download icon next to red delete button
+- **Scheduler Display**: Shows which scheduler was used for generation
+  - Examples: "DPM++ 2M", "Euler", "DDIM"
+  - Helps reproduce exact generation settings
+- **Denoise Strength Display**: Shows denoise strength for img2img generations
+  - Only displayed when img2img was used
+  - Format: "0.75" (2 decimal precision)
+- **Negative Prompt Display**: Now shows negative prompt if used
+  - Expandable section below main details
+  - Line-clamp for long prompts with full text on hover
+
+### 🗄️ Backend Enhancements
+- **Database Schema**: Added new columns to generations table
+  - `scheduler TEXT` - Stores scheduler used
+  - `denoise_strength REAL` - Stores img2img strength
+  - Automatic migration for existing databases
+- **API Updates**: Backend now saves and returns new fields
+  - `save_generation()` accepts scheduler and denoise_strength
+  - All history queries return complete generation data
+
+### 📊 Information Display (Complete List)
+**Now Displayed in History:**
+- ✅ Thumbnail (clickable to open full image)
+- ✅ Prompt (2-line clamp with hover for full text)
+- ✅ Model Key
+- ✅ Image Size (Width x Height)
+- ✅ Steps
+- ✅ CFG Scale (Guidance)
+- ✅ Seed (if set)
+- ✅ **Scheduler (NEW)**
+- ✅ **Denoise Strength (NEW - img2img only)**
+- ✅ **Negative Prompt (NEW - expandable section)**
+- ✅ Created Date & Time
+- ✅ Download & Delete actions
+
+### 🎯 Layout Improvements
+- **2-Column Grid on Large Screens**: Better space utilization
+- **Smaller Thumbnails**: 80x80px (more compact)
+- **Condensed Info Cards**: Tighter spacing, more information density
+- **Quick Actions**: Download and delete buttons always visible
+- **Responsive Design**: Adapts to screen size (1 or 2 columns)
+
+### 🔧 Technical Changes
+- Frontend Generation type extended with `scheduler` and `denoise_strength`
+- Database migration handles existing databases gracefully
+- API routes pass new fields when saving generations
+- Backward compatible with old generations (fields nullable)
+
+---
+
 ## [v1.2.2] - 2025-10-20
 
 ### 🐛 Critical Fixes

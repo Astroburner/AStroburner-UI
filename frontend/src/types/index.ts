@@ -63,6 +63,8 @@ export interface Generation {
   thumbnail_path: string | null;
   created_at: string;
   metadata: string | null;
+  scheduler: string | null;
+  denoise_strength: number | null;
 }
 
 export interface AppStats {
