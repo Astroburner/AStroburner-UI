@@ -16,6 +16,8 @@ interface AppState {
   guidanceScale: number;
   numImages: number;
   seed: number | null;
+  sampler: string;
+  scheduler: string;
   
   // Models
   models: ModelInfo[];
@@ -44,6 +46,8 @@ interface AppState {
   setGuidanceScale: (scale: number) => void;
   setNumImages: (num: number) => void;
   setSeed: (seed: number | null) => void;
+  setSampler: (sampler: string) => void;
+  setScheduler: (scheduler: string) => void;
   
   setModels: (models: ModelInfo[]) => void;
   setCurrentModel: (model: ModelInfo | null) => void;
@@ -72,6 +76,8 @@ export const useAppStore = create<AppState>((set) => ({
   guidanceScale: 7.5,
   numImages: 1,
   seed: null,
+  sampler: 'DPMSolverMultistep',
+  scheduler: 'DDIM',
   
   models: [],
   currentModel: null,
@@ -99,6 +105,8 @@ export const useAppStore = create<AppState>((set) => ({
   setGuidanceScale: (scale) => set({ guidanceScale: scale }),
   setNumImages: (num) => set({ numImages: num }),
   setSeed: (seed) => set({ seed }),
+  setSampler: (sampler) => set({ sampler }),
+  setScheduler: (scheduler) => set({ scheduler }),
   
   setModels: (models) => set({ models }),
   setCurrentModel: (model) => set({ currentModel: model }),
@@ -111,11 +119,13 @@ export const useAppStore = create<AppState>((set) => ({
   setSelectedTab: (tab) => set({ selectedTab: tab }),
   
   resetParams: () => set({
-    width: 512,
-    height: 512,
+    width: 1024,
+    height: 1024,
     steps: 30,
     guidanceScale: 7.5,
     numImages: 1,
     seed: null,
+    sampler: 'DPMSolverMultistep',
+    scheduler: 'DDIM',
   }),
 }));

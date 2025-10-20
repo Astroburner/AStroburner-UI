@@ -21,14 +21,16 @@ db = Database(settings.DB_PATH)
 
 # Request Models
 class GenerateImageRequest(BaseModel):
-    prompt: str = Field(..., min_length=1, max_length=1000)
+    prompt: str = Field(..., min_length=1, max_length=2000)
     negative_prompt: str = ""
-    width: int = Field(default=512, ge=64, le=2048)
-    height: int = Field(default=512, ge=64, le=2048)
+    width: int = Field(default=1024, ge=64, le=2048)
+    height: int = Field(default=1024, ge=64, le=2048)
     num_inference_steps: int = Field(default=30, ge=1, le=150)
     guidance_scale: float = Field(default=7.5, ge=0.0, le=20.0)
-    num_images: int = Field(default=1, ge=1, le=4)
+    num_images: int = Field(default=1, ge=1, le=20)
     seed: Optional[int] = None
+    sampler: Optional[str] = None
+    scheduler: Optional[str] = None
 
 class LoadModelRequest(BaseModel):
     model_config = {"protected_namespaces": ()}

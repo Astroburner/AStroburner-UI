@@ -13,6 +13,8 @@ export default function GeneratePanel() {
     guidanceScale,
     numImages,
     seed,
+    sampler,
+    scheduler,
     isGenerating,
     setPrompt,
     setNegativePrompt,
@@ -22,6 +24,8 @@ export default function GeneratePanel() {
     setGuidanceScale,
     setNumImages,
     setSeed,
+    setSampler,
+    setScheduler,
     setIsGenerating,
     addGeneratedImages,
   } = useAppStore();
@@ -47,6 +51,8 @@ export default function GeneratePanel() {
         guidance_scale: guidanceScale,
         num_images: numImages,
         seed: seed || undefined,
+        sampler: sampler,
+        scheduler: scheduler,
       });
 
       if (response.success) {
@@ -96,7 +102,7 @@ export default function GeneratePanel() {
           <input
             type="range"
             min="256"
-            max="1024"
+            max="2048"
             step="64"
             value={width}
             onChange={(e) => setWidth(Number(e.target.value))}
@@ -113,7 +119,7 @@ export default function GeneratePanel() {
           <input
             type="range"
             min="256"
-            max="1024"
+            max="2048"
             step="64"
             value={height}
             onChange={(e) => setHeight(Number(e.target.value))}
@@ -164,7 +170,7 @@ export default function GeneratePanel() {
           <input
             type="range"
             min="1"
-            max="4"
+            max="20"
             step="1"
             value={numImages}
             onChange={(e) => setNumImages(Number(e.target.value))}
@@ -184,6 +190,52 @@ export default function GeneratePanel() {
             className="w-full px-4 py-2 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
             disabled={isGenerating}
           />
+        </div>
+
+        {/* Sampler */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-300">Sampler</label>
+          <select
+            value={sampler}
+            onChange={(e) => setSampler(e.target.value)}
+            className="w-full px-4 py-2 bg-dark-700 border border-dark-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+            disabled={isGenerating}
+          >
+            <option value="DPMSolverMultistep">DPM++ 2M</option>
+            <option value="DPMSolverSinglestep">DPM++ SDE</option>
+            <option value="DDIM">DDIM</option>
+            <option value="PNDM">PNDM</option>
+            <option value="LMSDiscrete">LMS</option>
+            <option value="EulerDiscrete">Euler</option>
+            <option value="EulerAncestralDiscrete">Euler a</option>
+            <option value="HeunDiscrete">Heun</option>
+            <option value="DPM2Karras">DPM2 Karras</option>
+            <option value="UniPCMultistep">UniPC</option>
+          </select>
+        </div>
+
+        {/* Scheduler */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-300">Scheduler</label>
+          <select
+            value={scheduler}
+            onChange={(e) => setScheduler(e.target.value)}
+            className="w-full px-4 py-2 bg-dark-700 border border-dark-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+            disabled={isGenerating}
+          >
+            <option value="DDIM">DDIM</option>
+            <option value="DDPM">DDPM</option>
+            <option value="PNDM">PNDM</option>
+            <option value="LMSDiscrete">LMS</option>
+            <option value="EulerDiscrete">Euler</option>
+            <option value="EulerAncestralDiscrete">Euler Ancestral</option>
+            <option value="DPMSolverMultistep">DPM++ 2M</option>
+            <option value="DPMSolverSinglestep">DPM++ SDE</option>
+            <option value="HeunDiscrete">Heun</option>
+            <option value="KDPM2Discrete">KDPM2</option>
+            <option value="KDPM2AncestralDiscrete">KDPM2 Ancestral</option>
+            <option value="UniPCMultistep">UniPC</option>
+          </select>
         </div>
       </div>
 

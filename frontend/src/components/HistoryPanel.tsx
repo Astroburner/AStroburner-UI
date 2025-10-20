@@ -111,9 +111,25 @@ export default function HistoryPanel() {
                 className="bg-dark-700 border border-dark-600 rounded-lg p-4 hover:border-primary-500 transition-colors"
               >
                 <div className="flex gap-4">
-                  {/* Thumbnail placeholder */}
-                  <div className="w-24 h-24 bg-dark-600 rounded-lg flex-shrink-0 flex items-center justify-center text-gray-500 text-xs">
-                    {gen.width}x{gen.height}
+                  {/* Thumbnail */}
+                  <div className="w-24 h-24 bg-dark-600 rounded-lg flex-shrink-0 overflow-hidden">
+                    {gen.file_path ? (
+                      <img
+                        src={`http://127.0.0.1:8000/outputs/${gen.file_path.split('/').pop()}`}
+                        alt={gen.prompt}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback wenn Bild nicht laden kann
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.parentElement!.classList.add('flex', 'items-center', 'justify-center');
+                          e.currentTarget.parentElement!.innerHTML = `<span class="text-gray-500 text-xs">${gen.width}x${gen.height}</span>`;
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">
+                        {gen.width}x{gen.height}
+                      </div>
+                    )}
                   </div>
 
                   {/* Info */}
