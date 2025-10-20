@@ -51,11 +51,22 @@ venv\Scripts\activate     # Windows
 # Dependencies installieren
 pip install -r requirements.txt
 
-# PyTorch mit CUDA (NVIDIA GPU):
+# PyTorch Installation (wähle deine GPU-Generation):
+
+# RTX 5090 / RTX 50-series (CUDA 12.8):
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+
+# RTX 4090 / RTX 40-series (CUDA 12.1):
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 
-# PyTorch CPU only (ohne GPU):
-# pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# RTX 3090 / RTX 30-series (CUDA 11.8):
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+
+# Apple Silicon (M1/M2/M3):
+pip install torch torchvision
+
+# CPU only (langsam):
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 ```
 
 ### 3. Frontend Setup

@@ -82,19 +82,31 @@ which python  # sollte auf venv/bin/python zeigen
 
 ### 3. PyTorch Installation
 
-#### NVIDIA GPU (CUDA 12.1)
+Wähle die passende Version für deine Hardware:
+
+#### NVIDIA GPU - CUDA 12.8 (RTX 5090, RTX 50-series)
 ```bash
-pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
 ```
 
-#### Apple Silicon (MPS)
+#### NVIDIA GPU - CUDA 12.1 (RTX 4090, RTX 40-series)
 ```bash
-pip install torch==2.5.1 torchvision==0.20.1
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 ```
 
-#### CPU Only (Fallback)
+#### NVIDIA GPU - CUDA 11.8 (RTX 3090, RTX 30-series)
 ```bash
-pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cpu
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+```
+
+#### Apple Silicon (M1/M2/M3 Macs)
+```bash
+pip install torch torchvision
+```
+
+#### CPU Only (Fallback, langsam)
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 ```
 
 ### 4. Backend Dependencies
@@ -199,13 +211,33 @@ sudo apt install -y \
 
 ### 1. CUDA Toolkit Installation
 
-#### Windows
+**Wichtig:** Wähle die CUDA Version passend zu deiner GPU:
+
+#### RTX 50-series (RTX 5090, 5080, etc.) - CUDA 12.8
+**Windows:**
+1. Download CUDA Toolkit 12.8:
+   https://developer.nvidia.com/cuda-downloads
+2. Wähle CUDA 12.8
+3. Installiere mit Standard-Einstellungen
+4. Neustart erforderlich
+
+**Linux (Ubuntu):**
+```bash
+# CUDA 12.8
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
+sudo dpkg -i cuda-keyring_1.1-1_all.deb
+sudo apt update
+sudo apt install cuda-12-8
+```
+
+#### RTX 40-series (RTX 4090, 4080, etc.) - CUDA 12.1
+**Windows:**
 1. Download CUDA Toolkit 12.1:
    https://developer.nvidia.com/cuda-downloads
 2. Installiere mit Standard-Einstellungen
 3. Neustart erforderlich
 
-#### Linux (Ubuntu)
+**Linux (Ubuntu):**
 ```bash
 # CUDA 12.1
 wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
@@ -213,6 +245,9 @@ sudo dpkg -i cuda-keyring_1.1-1_all.deb
 sudo apt update
 sudo apt install cuda-12-1
 ```
+
+#### RTX 30-series (RTX 3090, 3080, etc.) - CUDA 11.8
+Folge den gleichen Schritten, wähle CUDA 11.8
 
 ### 2. cuDNN Installation (Optional für bessere Performance)
 

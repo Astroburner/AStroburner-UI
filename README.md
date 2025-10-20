@@ -84,11 +84,19 @@ source venv/bin/activate
 # Dependencies installieren
 pip install -r requirements.txt
 
-# CUDA Support (NVIDIA GPU):
+# PyTorch Installation (wähle basierend auf deiner GPU):
+
+# CUDA 12.8 (RTX 5090, RTX 50-series):
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+
+# CUDA 12.1 (RTX 4090, RTX 40-series):
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 
-# MPS Support (Apple Silicon - bereits in requirements.txt):
-# Keine zusätzlichen Schritte nötig
+# CUDA 11.8 (RTX 3090, RTX 30-series):
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+
+# MPS Support (Apple Silicon M1/M2/M3):
+pip install torch torchvision
 
 # CPU Only (fallback):
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu

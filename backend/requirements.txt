@@ -6,8 +6,14 @@ pydantic==2.9.2
 pydantic-settings==2.6.0
 
 # AI/ML
-torch==2.5.1
-torchvision==0.20.1
+# NOTE: Install PyTorch separately based on your CUDA version:
+# CUDA 12.8 (RTX 5090, RTX 50-series): pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+# CUDA 12.1 (RTX 4090, RTX 40-series): pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+# CUDA 11.8 (RTX 3090, RTX 30-series): pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+# CPU only: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# Apple Silicon (M1/M2/M3): pip install torch torchvision (MPS support included)
+torch>=2.5.0
+torchvision>=0.20.0
 diffusers==0.31.0
 transformers==4.46.3
 accelerate==1.1.1
