@@ -36,11 +36,7 @@ cd frontend
 npm install
 ```
 
-**KRITISCH:** Das Frontend benötigt das Tauri Dialog Plugin:
-```bash
-cd frontend
-npm install @tauri-apps/plugin-dialog
-```
+**Hinweis:** Das Tauri Dialog Plugin (`@tauri-apps/plugin-dialog`) ist bereits in `package.json` enthalten und wird automatisch mit `npm install` installiert.
 
 ## ✅ Überprüfung
 
