@@ -61,11 +61,25 @@ class ModelManager:
             
             # Load pipeline
             pipeline_class = model_info["pipeline_class"]
+            
+            # Configure NSFW filter based on settings
+            pipeline_kwargs = {
+                "torch_dtype": self.dtype,
+                "use_safetensors": True,
+                "cache_dir": settings.MODELS_DIR
+            }
+            
+            # Disable NSFW filter if configured
+            if settings.DISABLE_NSFW_FILTER:
+                pipeline_kwargs["safety_checker"] = None
+                pipeline_kwargs["requires_safety_checker"] = False
+                logger.info("NSFW filter disabled (safety_checker=None)")
+            else:
+                logger.info("NSFW filter enabled")
+            
             self.pipeline = pipeline_class.from_pretrained(
                 model_info["model_id"],
-                torch_dtype=self.dtype,
-                use_safetensors=True,
-                cache_dir=settings.MODELS_DIR
+                **pipeline_kwargs
             )
             
             # Move to device

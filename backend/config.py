@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     # Models
     DEFAULT_MODEL: str = "stabilityai/stable-diffusion-xl-base-1.0"
     
+    # Content Filtering
+    DISABLE_NSFW_FILTER: bool = True  # Set to False to enable NSFW content filter
+    
     class Config:
         env_file = ".env"
         case_sensitive = True
