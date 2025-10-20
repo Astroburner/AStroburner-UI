@@ -2,25 +2,44 @@
 
 Eine moderne Desktop-Anwendung für KI-basierte Bild- und Videogenerierung mit lokalem GPU-Support.
 
-![AI Studio](https://img.shields.io/badge/version-1.2.2-blue)
+![AI Studio](https://img.shields.io/badge/version-1.6.0-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+## ⚠️ WICHTIG: Nach dem Entpacken
+
+**Backup enthält keine `node_modules` um Dateigröße zu reduzieren!**
+
+### Quick-Fix (EMPFOHLEN):
+```bash
+quick-fix-dependencies.bat
+```
+
+### Oder mit Setup-Script:
+```bash
+setup.bat
+```
+
+Siehe auch: [INSTALL_AFTER_EXTRACT.md](INSTALL_AFTER_EXTRACT.md)
+
 ## 🎯 Features
 
-### MVP (Version 1.0)
+### v1.6.0 Features
 - ✅ **Text-to-Image Generation** mit mehreren Parametern
+- ✅ **Image-to-Image** mit Denoise Strength Control
 - ✅ **Multi-Model Support** (SD1.5, SDXL, SDXL-Turbo)
+- ✅ **Complete LoRA Management** (bis zu 5 gleichzeitig)
+- ✅ **Individual LoRA Strength Control** (0.0-2.0)
 - ✅ **GPU Management** mit VRAM Monitoring
-- ✅ **Gallery System** mit History & Metadata
+- ✅ **Enhanced History Panel** mit Scheduler & Denoise Display
 - ✅ **Modern Dark UI** mit Tailwind CSS
 - ✅ **Lazy Model Loading** für optimierte Performance
 - ✅ **SQLite Database** für Metadata & History
 
 ### Geplant (Future)
 - 🔄 Text-to-Video Generation (Wan Model)
-- 🔄 LoRA Support
 - 🔄 Inpainting & Outpainting
+- 🔄 ControlNet Support
 - 🔄 Batch Processing
 - 🔄 Model Download Manager
 

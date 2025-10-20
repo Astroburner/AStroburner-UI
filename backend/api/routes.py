@@ -41,6 +41,8 @@ class LoadModelRequest(BaseModel):
     model_key: str
 
 class AddLoRARequest(BaseModel):
+    model_config = {"protected_namespaces": ()}
+    
     name: str = Field(..., min_length=1, max_length=200)
     file_path: str = Field(..., min_length=1)
     model_type: str = Field(..., min_length=1)
