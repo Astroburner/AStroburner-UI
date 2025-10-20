@@ -1,4 +1,14 @@
 @echo off
+
+REM Force script to run in its own directory
+cd /d "%~dp0"
+
+REM Prevent window from closing on any error
+if "%1" neq "internal" (
+    cmd /k "cd /d "%~dp0" && "%~f0" internal"
+    exit /b
+)
+
 REM AI Studio - Automated Setup Script for Windows
 REM This script automates the complete installation process
 
@@ -37,7 +47,7 @@ if %errorlevel% neq 0 (
     echo Make sure to check "Add Python to PATH" during installation!
     echo.
     pause
-    exit /b 1
+    goto :end_menu
 )
 
 echo [OK] Python found:
@@ -52,30 +62,30 @@ if %errorlevel% neq 0 (
     echo https://nodejs.org/
     echo.
     pause
-    exit /b 1
+    goto :end_menu
 )
 
 echo [OK] Node.js found:
 node --version
 
 REM Check npm
-npm --version >nul 2>&1
+call npm --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo [ERROR] npm not found!
     echo.
-    echo npm should come with Node.js. Please reinstall Node.js.
+    echo npm should be installed with Node.js.
     echo.
     pause
-    exit /b 1
+    goto :end_menu
 )
 
 echo [OK] npm found:
-npm --version
+call npm --version
 
 REM Check Git (optional)
 git --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [WARNING] Git not found (optional)
+    echo [WARNING] Git not found (optional^)
 ) else (
     echo [OK] Git found:
     git --version
@@ -88,7 +98,7 @@ if %errorlevel% neq 0 (
     echo You can still use CPU, but it will be much slower.
     echo.
     choice /C YN /M "Continue without GPU support"
-    if errorlevel 2 exit /b 1
+    if errorlevel 2 goto :end_menu
 ) else (
     echo [OK] NVIDIA GPU detected:
     nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
@@ -108,6 +118,11 @@ echo [2/6] Setting up Python backend...
 echo.
 
 cd backend
+if %errorlevel% neq 0 (
+    echo [ERROR] backend folder not found!
+    pause
+    goto :end_menu
+)
 
 REM Check if venv already exists
 if exist "venv\" (
@@ -127,8 +142,9 @@ if not exist "venv\" (
     python -m venv venv
     if %errorlevel% neq 0 (
         echo [ERROR] Failed to create virtual environment!
+        cd ..
         pause
-        exit /b 1
+        goto :end_menu
     )
     echo [OK] Virtual environment created
 )
@@ -138,8 +154,9 @@ echo Activating virtual environment...
 call venv\Scripts\activate
 if %errorlevel% neq 0 (
     echo [ERROR] Failed to activate virtual environment!
+    cd ..
     pause
-    exit /b 1
+    goto :end_menu
 )
 
 REM Upgrade pip
@@ -150,11 +167,22 @@ REM Install base requirements
 echo.
 echo Installing Python dependencies...
 echo This may take a few minutes...
+
+if not exist "requirements.txt" (
+    echo [ERROR] requirements.txt not found!
+    cd ..
+    pause
+    goto :end_menu
+)
+
 pip install -r requirements.txt
 if %errorlevel% neq 0 (
     echo [ERROR] Failed to install Python dependencies!
+    echo.
+    echo Check the error messages above.
+    cd ..
     pause
-    exit /b 1
+    goto :end_menu
 )
 
 echo [OK] Python dependencies installed
@@ -170,60 +198,57 @@ echo.
 
 REM Detect GPU and suggest CUDA version
 nvidia-smi >nul 2>&1
-if %errorlevel% equ 0 (
+if %errorlevel% neq 0 (
+    echo No NVIDIA GPU detected. Installing PyTorch for CPU...
+    pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+) else (
     echo NVIDIA GPU detected!
     echo.
     echo Which GPU series do you have?
     echo.
-    echo 1. RTX 5090 / RTX 50-series (CUDA 12.8)
-    echo 2. RTX 4090 / RTX 40-series (CUDA 12.1)
-    echo 3. RTX 3090 / RTX 30-series (CUDA 11.8)
-    echo 4. CPU only (no GPU)
+    echo 1. RTX 5090 / RTX 50-series (CUDA 12.8^)
+    echo 2. RTX 4090 / RTX 40-series (CUDA 12.1^)
+    echo 3. RTX 3090 / RTX 30-series (CUDA 11.8^)
+    echo 4. CPU only (no GPU^)
     echo 5. Let me install manually later
     echo.
     choice /C 12345 /M "Select your GPU"
     
-    if errorlevel 5 (
-        echo.
-        echo [SKIPPED] PyTorch installation skipped
-        echo You can install manually later with:
-        echo   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
-        goto :skip_pytorch
-    )
-    if errorlevel 4 (
-        echo Installing PyTorch for CPU...
-        pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-    )
-    if errorlevel 3 (
-        echo Installing PyTorch for CUDA 11.8...
-        pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
-    )
-    if errorlevel 2 (
-        echo Installing PyTorch for CUDA 12.1...
-        pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-    )
-    if errorlevel 1 (
-        echo Installing PyTorch for CUDA 12.8...
-        pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
-    )
-) else (
-    echo No NVIDIA GPU detected. Installing PyTorch for CPU...
+    if errorlevel 5 goto :install_pytorch_skip
+    if errorlevel 4 goto :install_pytorch_cpu
+    if errorlevel 3 goto :install_pytorch_cu118
+    if errorlevel 2 goto :install_pytorch_cu121
+    if errorlevel 1 goto :install_pytorch_cu128
+
+    :install_pytorch_cu128
+    echo Installing PyTorch for CUDA 12.8...
+    pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+    goto :verify_pytorch
+
+    :install_pytorch_cu121
+    echo Installing PyTorch for CUDA 12.1...
+    pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+    goto :verify_pytorch
+
+    :install_pytorch_cu118
+    echo Installing PyTorch for CUDA 11.8...
+    pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+    goto :verify_pytorch
+
+    :install_pytorch_cpu
+    echo Installing PyTorch for CPU...
     pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-)
+    goto :verify_pytorch
 
-:skip_pytorch
-
-if %errorlevel% neq 0 (
-    echo [ERROR] Failed to install PyTorch!
+    :install_pytorch_skip
     echo.
+    echo [SKIPPED] PyTorch installation skipped
     echo You can install manually later with:
-    echo   cd backend
-    echo   venv\Scripts\activate
     echo   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
-    echo.
-    pause
+    goto :skip_pytorch
 )
 
+:verify_pytorch
 REM Verify PyTorch installation
 echo.
 echo Verifying PyTorch installation...
@@ -235,6 +260,7 @@ if %errorlevel% neq 0 (
     echo [OK] PyTorch installed successfully
 )
 
+:skip_pytorch
 cd ..
 
 echo.
@@ -249,6 +275,12 @@ echo [4/6] Setting up frontend...
 echo.
 
 cd frontend
+if %errorlevel% neq 0 (
+    echo [ERROR] frontend folder not found!
+    cd ..
+    pause
+    goto :end_menu
+)
 
 REM Check if node_modules exists
 if exist "node_modules\" (
@@ -275,12 +307,12 @@ if %errorlevel% neq 0 (
     echo   cd frontend
     echo   npm install
     echo.
+    cd ..
     pause
-    exit /b 1
+    goto :end_menu
 )
 
 :skip_npm_install
-
 echo [OK] Node.js dependencies installed
 
 cd ..
@@ -293,14 +325,16 @@ REM 5. RUST CHECK (for Tauri)
 REM ========================================
 
 echo.
-echo [5/6] Checking Rust installation (required for Tauri)...
+echo [5/6] Checking Rust installation (required for Tauri^)...
 echo.
+
+set RUST_MISSING=
 
 rustc --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo [WARNING] Rust not found!
     echo.
-    echo Rust is required for Tauri (the desktop framework).
+    echo Rust is required for Tauri (the desktop framework^).
     echo.
     echo To install Rust:
     echo 1. Visit: https://rustup.rs/
@@ -317,7 +351,7 @@ if %errorlevel% neq 0 (
     echo.
     echo [IMPORTANT] After installing Rust, restart your terminal and run setup.bat again!
     echo.
-    pause
+    set RUST_MISSING=1
 ) else (
     echo [OK] Rust found:
     rustc --version
@@ -357,6 +391,8 @@ echo.
 echo [6/6] Final verification...
 echo.
 
+set SETUP_FAILED=
+
 REM Check backend setup
 if not exist "backend\venv\" (
     echo [ERROR] Backend virtual environment not found!
@@ -376,10 +412,19 @@ if not exist "frontend\node_modules\" (
 REM Check if Rust is available
 rustc --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [WARNING] Rust not installed (required for desktop app)
+    echo [WARNING] Rust not installed (required for desktop app^)
     set RUST_MISSING=1
 ) else (
     echo [OK] Rust is installed
+)
+
+REM Create models directory structure if it doesn't exist
+if not exist "models\" (
+    echo Creating models directory...
+    mkdir models
+    echo [OK] models directory created
+) else (
+    echo [OK] models directory exists
 )
 
 echo.
@@ -397,7 +442,7 @@ if defined SETUP_FAILED (
     echo - Frontend: See README.md section "Frontend Setup"
     echo.
     pause
-    exit /b 1
+    goto :end_menu
 )
 
 if defined RUST_MISSING (
@@ -415,7 +460,7 @@ if defined RUST_MISSING (
     echo 3. Run: npm run tauri dev
     echo.
     pause
-    exit /b 0
+    goto :end_menu
 )
 
 echo.
@@ -425,33 +470,115 @@ echo ========================================
 echo    Installation Summary
 echo ========================================
 echo.
-echo Backend:  Ready (Python + PyTorch)
-echo Frontend: Ready (Node.js + React)
-echo Desktop:  Ready (Rust + Tauri)
-echo.
-echo ========================================
-echo    Next Steps
-echo ========================================
-echo.
-echo Start the application:
-echo.
-echo Option 1 - Separate terminals (Recommended):
-echo   Terminal 1:  cd backend  ^&^& run.bat
-echo   Terminal 2:  cd frontend ^&^& run.bat
-echo.
-echo Option 2 - Automatic start:
-echo   start.bat
-echo.
-echo ========================================
-echo.
-echo First run will take 5-10 minutes (Rust compilation)
-echo Subsequent runs will be much faster!
-echo.
-echo For help, see:
-echo - README.md
-echo - QUICKSTART.md
-echo - TROUBLESHOOTING.md
+echo Backend:  Ready (Python + PyTorch^)
+echo Frontend: Ready (Node.js + React^)
+echo Desktop:  Ready (Rust + Tauri^)
 echo.
 echo Have fun generating AI art with your RTX 5090! 🚀
 echo.
-pause
+
+:end_menu
+cls
+echo.
+echo ========================================
+echo    AI STUDIO - SETUP COMPLETE
+echo ========================================
+echo.
+echo Installation successful! Backend and Frontend are ready.
+echo.
+echo ========================================
+echo    QUICK ACTIONS
+echo ========================================
+echo.
+echo 1. Start AI Studio (automatic^)
+echo 2. Start Backend only
+echo 3. Start Frontend only
+echo 4. Open project folder
+echo 5. View system info
+echo 6. Exit
+echo.
+echo ========================================
+echo.
+
+choice /C 123456 /N /M "Select option [1-6]: "
+
+if errorlevel 6 goto :exit_script
+if errorlevel 5 goto :action_system_info
+if errorlevel 4 goto :action_open_folder
+if errorlevel 3 goto :action_start_frontend
+if errorlevel 2 goto :action_start_backend
+if errorlevel 1 goto :action_start_all
+
+:action_start_all
+    echo.
+    echo Starting AI Studio...
+    echo This will open two terminal windows.
+    echo.
+    timeout /t 2 >nul
+    if exist "start.bat" (
+        call start.bat
+    ) else (
+        echo [ERROR] start.bat not found!
+        pause
+    )
+    goto :end_menu_loop
+
+:action_start_backend
+    echo.
+    echo Starting Backend only...
+    echo.
+    start cmd /k "cd backend && venv\Scripts\activate && python main.py"
+    goto :end_menu_loop
+
+:action_start_frontend
+    echo.
+    echo Starting Frontend only...
+    echo.
+    start cmd /k "cd frontend && call npm run tauri dev"
+    goto :end_menu_loop
+
+:action_open_folder
+    echo.
+    echo Opening project folder...
+    start .
+    goto :end_menu_loop
+
+:action_system_info
+    cls
+    echo.
+    echo ========================================
+    echo    SYSTEM INFORMATION
+    echo ========================================
+    echo.
+    echo Python Version:
+    python --version
+    echo.
+    echo Node.js Version:
+    node --version
+    echo.
+    echo npm Version:
+    call npm --version
+    echo.
+    echo Rust Version:
+    rustc --version 2>nul || echo Rust not installed
+    echo.
+    echo GPU Information:
+    nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader 2>nul || echo No NVIDIA GPU detected
+    echo.
+    echo ========================================
+    echo.
+    pause
+    goto :end_menu
+
+:end_menu_loop
+goto :end_menu
+
+:exit_script
+echo.
+echo ========================================
+echo    Thank you for using AI Studio!
+echo ========================================
+echo.
+echo Closing in 3 seconds...
+timeout /t 3 >nul
+exit

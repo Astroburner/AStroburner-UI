@@ -34,7 +34,13 @@ Thumbs.db
 *.db
 *.sqlite
 outputs/
-models/
+
+# Models - Keep structure but ignore model files
+models/*
+!models/__init__.py
+!models/README.md
+!models/*/.gitkeep
+
 .cache/
 
 # Build
