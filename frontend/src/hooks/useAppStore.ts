@@ -16,8 +16,9 @@ interface AppState {
   guidanceScale: number;
   numImages: number;
   seed: number | null;
-  sampler: string;
   scheduler: string;
+  denoiseStrength: number;
+  inputImage: string | null;
   
   // Models
   models: ModelInfo[];
@@ -46,8 +47,9 @@ interface AppState {
   setGuidanceScale: (scale: number) => void;
   setNumImages: (num: number) => void;
   setSeed: (seed: number | null) => void;
-  setSampler: (sampler: string) => void;
   setScheduler: (scheduler: string) => void;
+  setDenoiseStrength: (strength: number) => void;
+  setInputImage: (image: string | null) => void;
   
   setModels: (models: ModelInfo[]) => void;
   setCurrentModel: (model: ModelInfo | null) => void;
@@ -76,8 +78,9 @@ export const useAppStore = create<AppState>((set) => ({
   guidanceScale: 7.5,
   numImages: 1,
   seed: null,
-  sampler: 'DPMSolverMultistep',
-  scheduler: 'DDIM',
+  scheduler: 'DPMSolverMultistep',
+  denoiseStrength: 0.75,
+  inputImage: null,
   
   models: [],
   currentModel: null,
@@ -105,8 +108,9 @@ export const useAppStore = create<AppState>((set) => ({
   setGuidanceScale: (scale) => set({ guidanceScale: scale }),
   setNumImages: (num) => set({ numImages: num }),
   setSeed: (seed) => set({ seed }),
-  setSampler: (sampler) => set({ sampler }),
   setScheduler: (scheduler) => set({ scheduler }),
+  setDenoiseStrength: (strength) => set({ denoiseStrength: strength }),
+  setInputImage: (image) => set({ inputImage: image }),
   
   setModels: (models) => set({ models }),
   setCurrentModel: (model) => set({ currentModel: model }),
@@ -125,7 +129,8 @@ export const useAppStore = create<AppState>((set) => ({
     guidanceScale: 7.5,
     numImages: 1,
     seed: null,
-    sampler: 'DPMSolverMultistep',
-    scheduler: 'DDIM',
+    scheduler: 'DPMSolverMultistep',
+    denoiseStrength: 0.75,
+    inputImage: null,
   }),
 }));

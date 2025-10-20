@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FiClock, FiTrash2, FiSearch } from 'react-icons/fi';
+import { FiClock, FiTrash2, FiSearch, FiDownload } from 'react-icons/fi';
 import { apiService } from '../services/api';
 import type { Generation } from '../types';
 
@@ -7,6 +7,14 @@ export default function HistoryPanel() {
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Helper function to extract filename from Windows/Unix paths
+  const getFilename = (filepath: string): string => {
+    if (!filepath) return '';
+    // Handle both Windows (\) and Unix (/) path separators
+    const parts = filepath.split(/[\\/]/);
+    return parts[parts.length - 1];
+  };
 
   useEffect(() => {
     loadHistory();
@@ -49,6 +57,28 @@ export default function HistoryPanel() {
       setGenerations(generations.filter((g) => g.id !== id));
     } catch (error) {
       console.error('Error deleting generation:', error);
+    }
+  };
+
+  const handleDownload = async (gen: Generation) => {
+    try {
+      const filename = getFilename(gen.file_path);
+      const imageUrl = `http://127.0.0.1:8000/outputs/${filename}`;
+      
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading image:', error);
+      alert('Fehler beim Herunterladen des Bildes');
     }
   };
 
@@ -115,7 +145,7 @@ export default function HistoryPanel() {
                   <div className="w-24 h-24 bg-dark-600 rounded-lg flex-shrink-0 overflow-hidden">
                     {gen.file_path ? (
                       <img
-                        src={`http://127.0.0.1:8000/outputs/${gen.file_path.split('/').pop()}`}
+                        src={`http://127.0.0.1:8000/outputs/${getFilename(gen.file_path)}`}
                         alt={gen.prompt}
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -136,13 +166,22 @@ export default function HistoryPanel() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <h3 className="text-white font-medium truncate">{gen.prompt}</h3>
-                      <button
-                        onClick={() => handleDelete(gen.id)}
-                        className="text-red-400 hover:text-red-300 transition-colors flex-shrink-0"
-                        title="Löschen"
-                      >
-                        <FiTrash2 />
-                      </button>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => handleDownload(gen)}
+                          className="text-green-400 hover:text-green-300 transition-colors"
+                          title="Herunterladen"
+                        >
+                          <FiDownload />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(gen.id)}
+                          className="text-red-400 hover:text-red-300 transition-colors"
+                          title="Löschen"
+                        >
+                          <FiTrash2 />
+                        </button>
+                      </div>
                     </div>
                     
                     <div className="text-sm text-gray-400 space-y-1">

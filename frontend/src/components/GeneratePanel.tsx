@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FiImage, FiLoader } from 'react-icons/fi';
+import { FiImage, FiLoader, FiUpload, FiX } from 'react-icons/fi';
 import { useAppStore } from '../hooks/useAppStore';
 import { apiService } from '../services/api';
 
@@ -13,8 +13,9 @@ export default function GeneratePanel() {
     guidanceScale,
     numImages,
     seed,
-    sampler,
     scheduler,
+    denoiseStrength,
+    inputImage,
     isGenerating,
     setPrompt,
     setNegativePrompt,
@@ -24,13 +25,33 @@ export default function GeneratePanel() {
     setGuidanceScale,
     setNumImages,
     setSeed,
-    setSampler,
     setScheduler,
+    setDenoiseStrength,
+    setInputImage,
     setIsGenerating,
     addGeneratedImages,
   } = useAppStore();
 
   const [error, setError] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setInputImage(base64String);
+        setImagePreview(base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setInputImage(null);
+    setImagePreview(null);
+  };
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -51,8 +72,9 @@ export default function GeneratePanel() {
         guidance_scale: guidanceScale,
         num_images: numImages,
         seed: seed || undefined,
-        sampler: sampler,
         scheduler: scheduler,
+        denoise_strength: inputImage ? denoiseStrength : undefined,
+        input_image: inputImage || undefined,
       });
 
       if (response.success) {
@@ -67,7 +89,69 @@ export default function GeneratePanel() {
   };
 
   return (
-    <div className="h-full flex flex-col gap-4 p-6 bg-dark-800">
+    <div className="h-full flex flex-col gap-4 p-6 bg-dark-800 overflow-y-auto">
+      {/* Image Upload (Image-to-Image) */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-gray-300">
+          Eingabebild (Optional - für Image-to-Image)
+        </label>
+        <div className="flex gap-2">
+          <label className="flex-1 cursor-pointer">
+            <div className="w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-gray-400 hover:border-primary-500 transition-colors flex items-center justify-center gap-2">
+              <FiUpload />
+              <span>{imagePreview ? 'Bild ändern' : 'Bild hochladen'}</span>
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+              disabled={isGenerating}
+            />
+          </label>
+          {imagePreview && (
+            <button
+              onClick={handleRemoveImage}
+              className="px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+              disabled={isGenerating}
+            >
+              <FiX />
+            </button>
+          )}
+        </div>
+        {imagePreview && (
+          <div className="mt-2 relative w-full h-48 bg-dark-700 rounded-lg overflow-hidden">
+            <img
+              src={imagePreview}
+              alt="Input preview"
+              className="w-full h-full object-contain"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Denoise Strength (nur für img2img) */}
+      {inputImage && (
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-300">
+            Denoise Strength: {denoiseStrength.toFixed(2)}
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={denoiseStrength}
+            onChange={(e) => setDenoiseStrength(Number(e.target.value))}
+            className="w-full"
+            disabled={isGenerating}
+          />
+          <p className="text-xs text-gray-500">
+            Niedrig (0.1-0.3): Kleine Änderungen | Mittel (0.4-0.6): Moderate Änderungen | Hoch (0.7-1.0): Starke Änderungen
+          </p>
+        </div>
+      )}
+
       {/* Prompt Input */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-300">Prompt</label>
@@ -192,49 +276,37 @@ export default function GeneratePanel() {
           />
         </div>
 
-        {/* Sampler */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-300">Sampler</label>
-          <select
-            value={sampler}
-            onChange={(e) => setSampler(e.target.value)}
-            className="w-full px-4 py-2 bg-dark-700 border border-dark-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-            disabled={isGenerating}
-          >
-            <option value="DPMSolverMultistep">DPM++ 2M</option>
-            <option value="DPMSolverSinglestep">DPM++ SDE</option>
-            <option value="DDIM">DDIM</option>
-            <option value="PNDM">PNDM</option>
-            <option value="LMSDiscrete">LMS</option>
-            <option value="EulerDiscrete">Euler</option>
-            <option value="EulerAncestralDiscrete">Euler a</option>
-            <option value="HeunDiscrete">Heun</option>
-            <option value="DPM2Karras">DPM2 Karras</option>
-            <option value="UniPCMultistep">UniPC</option>
-          </select>
-        </div>
-
-        {/* Scheduler */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-300">Scheduler</label>
+        {/* Scheduler (ersetzt Sampler + Scheduler) */}
+        <div className="space-y-2 col-span-2">
+          <label className="text-sm font-medium text-gray-300">
+            Scheduler (Denoising Algorithmus)
+          </label>
           <select
             value={scheduler}
             onChange={(e) => setScheduler(e.target.value)}
             className="w-full px-4 py-2 bg-dark-700 border border-dark-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
             disabled={isGenerating}
           >
-            <option value="DDIM">DDIM</option>
-            <option value="DDPM">DDPM</option>
-            <option value="PNDM">PNDM</option>
-            <option value="LMSDiscrete">LMS</option>
-            <option value="EulerDiscrete">Euler</option>
-            <option value="EulerAncestralDiscrete">Euler Ancestral</option>
-            <option value="DPMSolverMultistep">DPM++ 2M</option>
-            <option value="DPMSolverSinglestep">DPM++ SDE</option>
-            <option value="HeunDiscrete">Heun</option>
-            <option value="KDPM2Discrete">KDPM2</option>
-            <option value="KDPM2AncestralDiscrete">KDPM2 Ancestral</option>
-            <option value="UniPCMultistep">UniPC</option>
+            <optgroup label="Empfohlen für Qualität">
+              <option value="DPMSolverMultistep">DPM++ 2M (Schnell & Qualität)</option>
+              <option value="DPMSolverSinglestep">DPM++ SDE (Detailliert)</option>
+              <option value="UniPCMultistep">UniPC (Sehr schnell)</option>
+            </optgroup>
+            <optgroup label="Klassisch">
+              <option value="DDIM">DDIM (Standard)</option>
+              <option value="DDPM">DDPM (Original)</option>
+              <option value="PNDM">PNDM (Stabil)</option>
+            </optgroup>
+            <optgroup label="Euler Familie">
+              <option value="EulerDiscrete">Euler (Deterministisch)</option>
+              <option value="EulerAncestralDiscrete">Euler Ancestral (Kreativ)</option>
+            </optgroup>
+            <optgroup label="Weitere">
+              <option value="LMSDiscrete">LMS</option>
+              <option value="HeunDiscrete">Heun</option>
+              <option value="KDPM2Discrete">KDPM2</option>
+              <option value="KDPM2AncestralDiscrete">KDPM2 Ancestral</option>
+            </optgroup>
           </select>
         </div>
       </div>

@@ -29,6 +29,9 @@ class GenerateImageRequest(BaseModel):
     guidance_scale: float = Field(default=7.5, ge=0.0, le=20.0)
     num_images: int = Field(default=1, ge=1, le=20)
     seed: Optional[int] = None
+    scheduler: Optional[str] = None
+    denoise_strength: Optional[float] = Field(default=0.75, ge=0.0, le=1.0)
+    input_image: Optional[str] = None
     sampler: Optional[str] = None
     scheduler: Optional[str] = None
 
@@ -88,17 +91,35 @@ async def generate_image(request: GenerateImageRequest, background_tasks: Backgr
             if not load_result["success"]:
                 raise HTTPException(status_code=400, detail="Failed to load model")
         
-        # Generate images
-        result = model_manager.generate_image(
-            prompt=request.prompt,
-            negative_prompt=request.negative_prompt,
-            width=request.width,
-            height=request.height,
-            num_inference_steps=request.num_inference_steps,
-            guidance_scale=request.guidance_scale,
-            num_images=request.num_images,
-            seed=request.seed
-        )
+        # Generate images (txt2img or img2img)
+        if request.input_image:
+            # Image-to-Image generation
+            result = model_manager.generate_img2img(
+                prompt=request.prompt,
+                negative_prompt=request.negative_prompt,
+                input_image_base64=request.input_image,
+                width=request.width,
+                height=request.height,
+                num_inference_steps=request.num_inference_steps,
+                guidance_scale=request.guidance_scale,
+                num_images=request.num_images,
+                seed=request.seed,
+                scheduler=request.scheduler,
+                strength=request.denoise_strength
+            )
+        else:
+            # Text-to-Image generation
+            result = model_manager.generate_image(
+                prompt=request.prompt,
+                negative_prompt=request.negative_prompt,
+                width=request.width,
+                height=request.height,
+                num_inference_steps=request.num_inference_steps,
+                guidance_scale=request.guidance_scale,
+                num_images=request.num_images,
+                seed=request.seed,
+                scheduler=request.scheduler
+            )
         
         if not result["success"]:
             raise HTTPException(status_code=500, detail=result["error"])

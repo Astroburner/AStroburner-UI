@@ -7,6 +7,9 @@ export interface GenerateImageRequest {
   guidance_scale?: number;
   num_images?: number;
   seed?: number;
+  scheduler?: string;
+  denoise_strength?: number;
+  input_image?: string;
 }
 
 export interface GeneratedImage {
