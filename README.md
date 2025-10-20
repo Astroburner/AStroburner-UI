@@ -104,7 +104,7 @@ Siehe auch: [INSTALL_AFTER_EXTRACT.md](INSTALL_AFTER_EXTRACT.md)
 
 ```cmd
 # 1. Download und entpacken
-# https://page.gensparksite.com/project_backups/ai-studio-v1.6.0-fixed.tar.gz
+# https://github.com/Astroburner/AStroburner-UI.git
 
 # 2. Automatische Installation (15-25 Min)
 cd ai-studio
