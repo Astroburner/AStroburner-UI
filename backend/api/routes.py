@@ -48,17 +48,17 @@ class AddLoRARequest(BaseModel):
     model_type: str = Field(..., min_length=1)
     trigger_words: Optional[str] = None
     description: Optional[str] = None
-    weight: float = Field(default=1.0, ge=0.0, le=2.0)
+    weight: float = Field(default=1.0, ge=-1.0, le=2.0)
 
 class UpdateLoRARequest(BaseModel):
     name: Optional[str] = None
     trigger_words: Optional[str] = None
     description: Optional[str] = None
-    weight: Optional[float] = Field(default=None, ge=0.0, le=2.0)
+    weight: Optional[float] = Field(default=None, ge=-1.0, le=2.0)
 
 class SetLoRAActiveRequest(BaseModel):
     is_active: bool
-    weight: Optional[float] = Field(default=None, ge=0.0, le=2.0)
+    weight: Optional[float] = Field(default=None, ge=-1.0, le=2.0)
 
 # API Routes
 @router.get("/health")

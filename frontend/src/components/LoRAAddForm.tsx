@@ -199,7 +199,7 @@ export default function LoRAAddForm({ onSuccess }: LoRAAddFormProps) {
           </label>
           <input
             type="range"
-            min="0"
+            min="-1"
             max="2"
             step="0.05"
             value={weight}
@@ -207,6 +207,7 @@ export default function LoRAAddForm({ onSuccess }: LoRAAddFormProps) {
             className="w-full"
           />
           <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <span>-1.0</span>
             <span>0.0</span>
             <span>1.0</span>
             <span>2.0</span>

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
-import { FiClock, FiTrash2, FiSearch, FiDownload } from 'react-icons/fi';
+import { FiClock, FiTrash2, FiSearch, FiDownload, FiCopy } from 'react-icons/fi';
 import { apiService } from '../services/api';
+import { useAppStore } from '../hooks/useAppStore';
 import type { Generation } from '../types';
 
 export default function HistoryPanel() {
+  const { loadGenerationParams, setSelectedTab } = useAppStore();
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -80,6 +82,20 @@ export default function HistoryPanel() {
       console.error('Error downloading image:', error);
       alert('Fehler beim Herunterladen des Bildes');
     }
+  };
+
+  const handleCopyToGenerate = (gen: Generation) => {
+    loadGenerationParams({
+      prompt: gen.prompt,
+      negativePrompt: gen.negative_prompt || '',
+      width: gen.width,
+      height: gen.height,
+      steps: gen.steps,
+      guidanceScale: gen.guidance_scale,
+      seed: gen.seed,
+      scheduler: gen.scheduler || 'DPMSolverMultistep',
+    });
+    setSelectedTab('generate');
   };
 
   if (loading) {
@@ -170,6 +186,13 @@ export default function HistoryPanel() {
                         {gen.prompt}
                       </h3>
                       <div className="flex gap-1 flex-shrink-0">
+                        <button
+                          onClick={() => handleCopyToGenerate(gen)}
+                          className="p-2 text-blue-400 hover:text-blue-300 hover:bg-dark-600 rounded transition-colors"
+                          title="Einstellungen übernehmen"
+                        >
+                          <FiCopy size={16} />
+                        </button>
                         <button
                           onClick={() => handleDownload(gen)}
                           className="p-2 text-green-400 hover:text-green-300 hover:bg-dark-600 rounded transition-colors"

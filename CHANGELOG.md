@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.0] - 2025-01-20
+
+### 🎉 Features (Major UI/UX Update)
+- **History Copy-Funktion** - Einstellungen direkt aus History in Generate übernehmen (Copy-Button)
+- **Settings: Model Download Indicator** - Grünes Licht zeigt heruntergeladene Modelle an
+- **LoRA Strength erweitert** - Range von -1 bis +2 (statt 0-2) für mehr Kontrolle
+- **NSFW Toggle** - Activate/Deactivate Button für NSFW-Content (Safety Checker)
+- **Generate Button verlegt** - Jetzt prominent in Header-Mitte für bessere UX
+- **Umbenennung zu "Astroburner-UI"** - Neuer Name im gesamten Projekt
+
+### 🔧 Changed
+- Header: Generate-Button in die Mitte verlegt
+- LoRA Weights: Negativer Range (-1.0 bis +2.0) für inverse LoRAs
+- UI: Konsistentes "Astroburner-UI" Branding
+
+### 📚 Documentation
+- README.md: Titel auf "Astroburner-UI" geändert
+- package.json: Name auf "astroburner-ui-frontend"
+- Tauri Config: Product Name & Identifier aktualisiert
+
+---
+
 ## [1.7.5] - 2025-01-20
 
 ### 🐛 Fixed (Critical Bugfixes)

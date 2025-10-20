@@ -392,13 +392,27 @@ class ModelManager:
     
     def list_available_models(self) -> Dict:
         """List all available models"""
+        from huggingface_hub import scan_cache_dir
+        
+        # Scan HuggingFace cache to check which models are downloaded
+        downloaded_models = set()
+        try:
+            cache_info = scan_cache_dir()
+            for repo in cache_info.repos:
+                # Extract repo ID from repo_id attribute
+                repo_id = repo.repo_id
+                downloaded_models.add(repo_id)
+        except Exception as e:
+            logger.warning(f"Could not scan HuggingFace cache: {e}")
+        
         return {
             "models": [
                 {
                     "key": key,
                     "name": info["name"],
                     "type": info["type"],
-                    "loaded": key == self.current_model
+                    "loaded": key == self.current_model,
+                    "downloaded": info["model_id"] in downloaded_models
                 }
                 for key, info in self.AVAILABLE_MODELS.items()
             ]

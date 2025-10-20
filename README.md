@@ -1,14 +1,22 @@
-# AI Studio - Desktop AI Generation App
+# Astroburner-UI - Desktop AI Generation App
 
 Eine moderne Desktop-Anwendung für KI-basierte Bild- und Videogenerierung mit lokalem GPU-Support.
 
-![AI Studio](https://img.shields.io/badge/version-1.7.5-blue)
+![Astroburner-UI](https://img.shields.io/badge/version-1.8.0-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## 🎯 Features
 
-### v1.7.5 Bugfixes (NEU!)
+### v1.8.0 Major Update (NEU!)
+- 🎨 **History Copy-Funktion** - Einstellungen direkt aus History übernehmen
+- 💚 **Model Download Indicator** - Grünes Licht für heruntergeladene Modelle
+- ⚡ **LoRA Strength -1 bis +2** - Negativer Range für inverse LoRAs
+- 🔞 **NSFW Toggle** - Safety Checker aktivieren/deaktivieren
+- 🎯 **Generate Button im Header** - Zentral platziert für bessere UX
+- 🏷️ **Neuer Name: Astroburner-UI** - Konsistentes Branding
+
+### v1.7.5 Bugfixes
 - 🐛 **LoRA Durchsuchen-Button** - Dialog-Plugin jetzt voll funktionsfähig
 - 🐛 **LoRA Persistenz** - LoRAs verschwinden nicht mehr nach Page-Refresh
 - 🐛 **History Prompt-Anzeige** - Positive Prompts werden nicht mehr abgeschnitten

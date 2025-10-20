@@ -177,9 +177,23 @@ export default function SettingsPanel() {
                     : 'bg-dark-800 border-dark-600 hover:border-dark-500'
                 }`}
               >
-                <div>
-                  <div className="text-white font-medium">{model.name}</div>
-                  <div className="text-sm text-gray-400">{model.type}</div>
+                <div className="flex items-center gap-3">
+                  {/* Downloaded Indicator */}
+                  <div className="relative">
+                    <div className={`w-3 h-3 rounded-full ${
+                      model.downloaded 
+                        ? 'bg-green-500 shadow-lg shadow-green-500/50' 
+                        : 'bg-gray-600'
+                    }`} title={model.downloaded ? 'Heruntergeladen' : 'Nicht heruntergeladen'}>
+                      {model.downloaded && (
+                        <div className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75"></div>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-white font-medium">{model.name}</div>
+                    <div className="text-sm text-gray-400">{model.type}</div>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   {model.loaded ? (
@@ -243,7 +257,7 @@ export default function SettingsPanel() {
           <div className="text-gray-300 space-y-2 text-sm">
             <div className="flex justify-between">
               <span>Version:</span>
-              <span className="font-medium">1.7.5</span>
+              <span className="font-medium">1.8.0</span>
             </div>
             <div className="flex justify-between">
               <span>Build:</span>

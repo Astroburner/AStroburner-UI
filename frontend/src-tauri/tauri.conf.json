@@ -1,7 +1,7 @@
 {
-  "productName": "AI Studio",
-  "version": "1.6.0",
-  "identifier": "com.astroburner.ai-studio",
+  "productName": "Astroburner-UI",
+  "version": "1.8.0",
+  "identifier": "com.astroburner.astroburner-ui",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
@@ -11,7 +11,7 @@
   "app": {
     "windows": [
       {
-        "title": "AI Studio",
+        "title": "Astroburner-UI",
         "width": 1600,
         "height": 1000,
         "minWidth": 1200,
