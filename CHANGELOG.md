@@ -2,441 +2,105 @@
 
 All notable changes to AI Studio will be documented in this file.
 
-## [v1.6.0] - 2025-10-20
-
-### 🎨 Major Feature - Complete LoRA Management System
-
-#### ✨ New Features
-- **LoRA Management UI**:
-  - New "LoRAs" tab in Settings alongside Models tab
-  - Add LoRAs from local PC (.safetensors files)
-  - File picker with Tauri dialog for easy file selection
-  - Support for 11 model types: SD1.5, SDXL, SDXL-Turbo, Pony, Illustrious, Flux-Dev, Flux-Kontext, Wan2.1, Wan2.2, Qwen, Qwen-image-edit
-  - LoRA list with activate/deactivate functionality
-  - Delete LoRAs from database (files stay in place)
-  - "Deactivate All" quick action button
-
-- **Multi-LoRA Support** (CRITICAL):
-  - **Up to 5 LoRAs active simultaneously**
-  - Individual strength control per LoRA (0.0-2.0)
-  - Backend enforces max 5 active LoRAs limit
-  - Frontend UI shows active count (X/5)
-  - Real-time strength adjustment during generation setup
-
-- **Generate Panel Integration** (USER REQUIREMENT):
-  - Active LoRAs display section (only visible when LoRAs active)
-  - **Individual strength sliders per active LoRA** (0.0-2.0)
-  - Shows LoRA name, model type, and trigger words
-  - Visual indicator with primary color theme
-  - Strength changes persist in store for next generation
-
-- **LoRA Metadata**:
-  - Name, file path, model type
-  - Optional trigger words (activation keywords)
-  - Optional description
-  - Adjustable default weight (0.0-2.0)
-  - Created timestamp
-  - Active/inactive status
-
-#### 🔧 Backend Implementation
-- **Database Schema** (`models/database.py`):
-  - New `loras` table with complete metadata
-  - CRUD operations: add, get, get_active, update, delete, deactivate_all
-  - Max 5 active LoRAs enforced at database level
-  - File path validation and duplicate prevention
-
-- **API Endpoints** (`api/routes.py`):
-  - `POST /loras` - Add new LoRA
-  - `GET /loras` - List all (optional model_type filter)
-  - `GET /loras/active` - Get active LoRAs only
-  - `PATCH /loras/{id}` - Update LoRA details
-  - `PATCH /loras/{id}/activate` - Activate/deactivate (enforces max 5)
-  - `DELETE /loras/{id}` - Delete LoRA
-  - `POST /loras/deactivate-all` - Deactivate all LoRAs
-
-- **Model Manager** (`core/model_manager.py`):
-  - `load_loras()` - Load up to 5 LoRAs into pipeline
-  - Multi-LoRA support using adapter system
-  - Per-LoRA weight control
-  - Works with both txt2img and img2img pipelines
-  - `unload_all_loras()` - Clean slate for new LoRA combinations
-  - `get_loaded_loras()` - Track currently loaded LoRAs
-  - **Auto-loading**: Generation automatically loads active LoRAs from database
-
-#### 🎯 Frontend Implementation
-- **State Management** (`hooks/useAppStore.ts`):
-  - `activeLoras` state array
-  - `setActiveLoras()` - Update active LoRAs list
-  - `updateLoraWeight()` - Adjust individual LoRA strength
-
-- **Components**:
-  - `LoRAAddForm.tsx` - Complete add form with file picker
-  - `LoRAList.tsx` - LoRA management with activate/deactivate
-  - `SettingsPanel.tsx` - Tab system (Models | LoRAs)
-  - `GeneratePanel.tsx` - Active LoRAs display with strength sliders
-
-- **API Integration** (`services/api.ts`):
-  - Complete LoRA CRUD methods
-  - Type-safe with TypeScript interfaces
-  - Error handling for max limit violations
-
-#### 📝 Technical Details
-- **File Management**: Files stay in original location (no copying)
-- **Disk Space Optimization**: Only stores metadata in database
-- **Type Safety**: Complete TypeScript type definitions
-- **Error Handling**: User-friendly messages for max limit violations
-- **Performance**: Lazy loading of LoRAs into GPU memory
-- **Compatibility**: Works with all supported model types
-
-#### 🎨 UI/UX Highlights
-- Tab-based Settings navigation
-- Visual feedback for active LoRAs (primary color theme)
-- Compact LoRA cards with all essential info
-- Quick actions (Activate/Deactivate/Delete)
-- Real-time weight adjustment
-- Responsive design
-- Conditional visibility (only show when relevant)
-
-### 🔧 Version Updates
-- Backend: config.py APP_VERSION = "1.6.0"
-- Frontend: package.json version = "1.6.0"
-- Tauri: tauri.conf.json version = "1.6.0"
-- Settings Panel: Info section version = "1.6.0"
-
-### 📊 Complete Feature Summary
-**What User Can Do:**
-1. ✅ Add LoRAs from local .safetensors files
-2. ✅ Select from 11 supported model types
-3. ✅ Add trigger words and description
-4. ✅ Set default weight (0.0-2.0)
-5. ✅ Activate up to 5 LoRAs simultaneously
-6. ✅ Adjust individual strength per active LoRA
-7. ✅ See active LoRAs in Generate Panel
-8. ✅ Generate with multiple LoRAs at once
-9. ✅ Deactivate individual or all LoRAs
-10. ✅ Delete LoRAs from management (files stay in place)
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [v1.5.0] - 2025-10-20
+## [1.7.1] - 2025-01-20
 
-### 🎨 Major UI/UX Improvements - History Panel Redesign
-- **Compact Layout**: Redesigned History Panel to be significantly more compact
-  - All information now visible on single screen (no more excessive scrolling)
-  - Grid layout: 1 column on small screens, 2 columns on XL screens
-  - Smaller thumbnail size (80x80 → more space efficient)
-  - Optimized spacing and padding throughout
-
-### ✨ New Features - Enhanced History Information
-- **Download Button Per Image**: Each history entry now has its own download button
-  - Quick access: Download directly from history without opening full view
-  - Green download icon next to red delete button
-- **Scheduler Display**: Shows which scheduler was used for generation
-  - Examples: "DPM++ 2M", "Euler", "DDIM"
-  - Helps reproduce exact generation settings
-- **Denoise Strength Display**: Shows denoise strength for img2img generations
-  - Only displayed when img2img was used
-  - Format: "0.75" (2 decimal precision)
-- **Negative Prompt Display**: Now shows negative prompt if used
-  - Expandable section below main details
-  - Line-clamp for long prompts with full text on hover
-
-### 🗄️ Backend Enhancements
-- **Database Schema**: Added new columns to generations table
-  - `scheduler TEXT` - Stores scheduler used
-  - `denoise_strength REAL` - Stores img2img strength
-  - Automatic migration for existing databases
-- **API Updates**: Backend now saves and returns new fields
-  - `save_generation()` accepts scheduler and denoise_strength
-  - All history queries return complete generation data
-
-### 📊 Information Display (Complete List)
-**Now Displayed in History:**
-- ✅ Thumbnail (clickable to open full image)
-- ✅ Prompt (2-line clamp with hover for full text)
-- ✅ Model Key
-- ✅ Image Size (Width x Height)
-- ✅ Steps
-- ✅ CFG Scale (Guidance)
-- ✅ Seed (if set)
-- ✅ **Scheduler (NEW)**
-- ✅ **Denoise Strength (NEW - img2img only)**
-- ✅ **Negative Prompt (NEW - expandable section)**
-- ✅ Created Date & Time
-- ✅ Download & Delete actions
-
-### 🎯 Layout Improvements
-- **2-Column Grid on Large Screens**: Better space utilization
-- **Smaller Thumbnails**: 80x80px (more compact)
-- **Condensed Info Cards**: Tighter spacing, more information density
-- **Quick Actions**: Download and delete buttons always visible
-- **Responsive Design**: Adapts to screen size (1 or 2 columns)
-
-### 🔧 Technical Changes
-- Frontend Generation type extended with `scheduler` and `denoise_strength`
-- Database migration handles existing databases gracefully
-- API routes pass new fields when saving generations
-- Backward compatible with old generations (fields nullable)
-
----
-
-## [v1.2.2] - 2025-10-20
-
-### 🐛 Critical Fixes
-- **Missing Icon Files**: Added complete icon set for Tauri Windows build
-  - Error fixed: `icons/icon.ico not found; required for Windows Resource file`
-  - Added icon.png (1024x1024 base)
-  - Added icon.ico (Windows multi-size: 16, 32, 48, 64, 128, 256)
-  - Added 32x32.png, 128x128.png, 128x128@2x.png, 512x512.png
-- **Icon Design**: Dark blue theme with "AI" logo
-  - Background: #1a1a2e (dark blue)
-  - Circle: #16213e (navy)
-  - Text: #e94560 (red)
-
-### 📦 Added
-- `frontend/src-tauri/icons/` directory with complete icon set
-- `create_icons.sh` script for regenerating icons
-- `ICON_SETUP_WINDOWS.md` guide for manual icon setup
-
-### 🔧 Updated
-- `tauri.conf.json` - version 1.2.0 and all icon paths
-- Bundle configuration with complete icon array
-
----
-
-## [v1.2.1] - 2025-10-20
-
-### 🐛 Critical Fixes
-- **Tauri Cargo Error**: Fixed shell-open feature not found
-  - Error: `tauri does not have feature shell-open`
-  - Solution: Replaced with `tauri-plugin-shell = "2.0"`
-  - Tauri 2.0 moved shell to separate plugin
-- **Pydantic Warning**: Fixed model_key namespace conflict
-  - Warning: `Field "model_key" conflicts with protected namespace "model_"`
-  - Solution: Added `model_config = {"protected_namespaces": ()}`
-  - Applied to `LoadModelRequest` in `backend/api/routes.py`
-
-### 🔧 Version Updates
-- Backend config: APP_VERSION = "1.2.0"
-- Frontend package.json: version = "1.2.0"
-- Tauri Cargo.toml: version = "1.2.0"
-
-### 📝 Documentation
-- Added `BUGFIX_v1.2.1.md` with detailed fix instructions
-- Manual and automatic fix procedures documented
-
----
-
-## [v1.2.0] - 2025-10-20
-
-### ✨ Added
-- **Interactive Setup Menu**: setup.bat now shows a menu after installation with 6 quick actions
-- **models/ Directory**: Created proper models directory structure in project root (not backend)
-  - Added `models/__init__.py` with comprehensive documentation
-  - Added `models/README.md` with usage guide, performance benchmarks, and troubleshooting
-  - Created subdirectories: sd15, sdxl, sdxl-turbo, flux, pony, illustrious, lora
-  - Added .gitkeep files to preserve directory structure in git
-- **Quick Actions Menu** in setup.bat:
-  1. Start AI Studio (automatic)
-  2. Start Backend only
-  3. Start Frontend only
-  4. Open project folder
-  5. View system info
-  6. Exit
+### 🆕 Added
+- **11 neue Modelle:**
+  - Pony Diffusion XL V6 - Anthropomorphe Charaktere (✅ Ready)
+  - Illustrious XL - High-Quality Anime (✅ Ready)
+  - FLUX.1 Dev - State-of-the-art T2I (🚧 Experimentell)
+  - FLUX.1 Kontext Dev - Image Editing (🚧 Experimentell)
+  - Wan 2.1 T2V/I2V - Video Generation (🚧 Experimentell)
+  - Wan 2.2 T2V/I2V/S2V - Enhanced Video (🚧 Experimentell)
+  - Qwen-Image/Edit - Text Rendering (🚧 Experimentell)
+- Dialog Plugin für File Picker (Tauri)
+- CUDA Auto-Detection für RTX 5090/4090/3090
+- Automatischer CUDA-Fix in setup.bat
+- `ADVANCED_MODELS_ARCHITECTURE.md` - Technische Dokumentation
+- `NEW_MODELS_v1.7.1.md` - Modell-Übersicht
+- GitHub Issue Templates
+- CONTRIBUTING.md
 
 ### 🔧 Changed
-- **setup.bat Enhancement**: 
-  - Added `cmd /k` wrapper to prevent window from closing on error
-  - Improved error handling with better error messages
-  - Added interactive menu after setup completion
-  - Better user feedback during installation
-- **Directory Structure**: Models now stored in `models/` (project root) instead of `backend/models/`
-- **.gitignore Update**: Preserve models/ structure while ignoring model files
-
-### 📝 Documentation
-- Updated models/README.md with:
-  - Storage requirements and VRAM usage
-  - Model performance benchmarks for RTX 5090
-  - Troubleshooting section
-  - Configuration guide
-  - Tips for best results
+- `sentencepiece` Version: `==0.2.0` → `>=0.2.1`
+- Backend Version: 1.6.0 → 1.7.1
+- Frontend Version: 1.6.0 → 1.7.1
+- setup.bat: EnableDelayedExpansion Syntax korrigiert
+- README.md: Status-Icons für Modelle (✅/🚧)
 
 ### 🐛 Fixed
-- Window closing immediately on setup.bat errors (cmd /k wrapper)
-- Models directory path confusion (now clearly in project root)
-- Missing __init__.py in models/ directory
+- Dialog Plugin Import Error im Frontend
+- Pydantic `model_type` namespace Warnung
+- Batch-Datei Syntax-Fehler mit "."
+- PyTorch CPU-Installation statt CUDA
+- Port 3000 Konflikt-Management
 
-## [v1.1.0] - 2025-01-19
+### ⚠️ Known Issues
+- FLUX/Wan/Qwen benötigen spezielle Konfiguration (siehe ADVANCED_MODELS_ARCHITECTURE.md)
+- Video-Generierung ist experimentell und sehr langsam
+- FLUX benötigt Hugging Face Login
 
-### ✨ Added
-- **Automated Setup Script** (setup.bat) with 6-step installation process
-- **Interactive PyTorch Installation** with GPU-specific menu:
-  - RTX 5090 / 50-series (CUDA 12.8)
-  - RTX 4090 / 40-series (CUDA 12.1)
-  - RTX 3090 / 30-series (CUDA 11.8)
-  - CPU only
-  - Manual installation option
-- **System Requirements Checking**:
-  - Python 3.10+ verification
-  - Node.js 18+ verification
-  - npm verification
-  - Git detection (optional)
-  - NVIDIA GPU detection
-- **Automatic Environment Setup**:
-  - Python virtual environment creation
-  - Dependency installation
-  - PyTorch installation with correct CUDA version
-  - Frontend dependencies installation
-- **Rust & Build Tools Verification**:
-  - Rust installation check
-  - Visual Studio Build Tools check
-  - Automatic browser opening to installer websites
+---
+
+## [1.6.0] - 2025-01-15
+
+### 🆕 Added
+- Text-to-Image Generation mit mehreren Parametern
+- Image-to-Image mit Denoise Strength Control
+- Multi-Model Support (SD1.5, SDXL, SDXL-Turbo)
+- Complete LoRA Management (bis zu 5 gleichzeitig)
+- Individual LoRA Strength Control (0.0-2.0)
+- GPU Management mit VRAM Monitoring
+- Enhanced History Panel
+- Modern Dark UI mit Tailwind CSS
+- Lazy Model Loading
+- SQLite Database für Metadata
 
 ### 🔧 Changed
-- Simplified installation from 20+ manual steps to single command
-- 50% reduction in installation time (15-25 min vs 30-40 min manual)
-- Better error messages and user guidance
-
-### 📝 Documentation
-- Added SETUP_BAT_README.md with complete setup.bat documentation
-- Added TROUBLESHOOTING.md with solutions for common issues
-- Added RTX_5090_SETUP.md with GPU-specific optimization guide
-
-## [v1.0.0] - 2025-01-18
-
-### ✨ Initial Release
-
-#### Core Features
-- **Desktop Application Framework**:
-  - Tauri 2.0 for lightweight cross-platform desktop app
-  - React 18 + TypeScript frontend
-  - FastAPI + Python backend
-  - SQLite database for generation history
-
-- **AI Image Generation**:
-  - Stable Diffusion 1.5 support
-  - SDXL Base support
-  - SDXL Turbo support
-  - GPU acceleration with CUDA
-  - Real-time generation progress
-  - Batch generation support
-
-- **GPU Optimization**:
-  - RTX 5090 32GB VRAM optimization
-  - xFormers memory-efficient attention
-  - Attention slicing
-  - VAE slicing for ultra-high resolution
-  - Lazy model loading
-  - Automatic GPU monitoring
-
-- **User Interface**:
-  - Modern dark theme with Tailwind CSS
-  - Real-time GPU monitoring (VRAM, temp, utilization)
-  - Parameter controls (steps, CFG, seed, size)
-  - Image gallery with history
-  - Generation statistics
-  - Prompt and negative prompt inputs
-
-- **Backend Features**:
-  - 15+ REST API endpoints
-  - Model management system
-  - GPU monitoring service
-  - Generation queue system
-  - Image output management
-  - SQLite database for metadata
-
-#### Development Tools
-- **Backend Scripts**:
-  - run.bat for backend startup
-  - Comprehensive system checks
-  - GPU status verification
-  - Log monitoring
-
-- **Frontend Scripts**:
-  - run.bat for frontend startup
-  - Backend connection testing
-  - Automatic Tauri dev server startup
-
-- **Project Scripts**:
-  - start.bat for automatic startup (backend + frontend)
-  - Enhanced error handling
-  - Progress indicators
-
-#### Documentation
-- README.md - Main project documentation
-- QUICKSTART.md - Quick start guide
-- SETUP.md - Detailed setup instructions
-- ARCHITECTURE.md - System architecture
-- API.md - API documentation
-- MODELS.md - Model guide
-- TROUBLESHOOTING.md - Problem solutions
-- RTX_5090_SETUP.md - GPU optimization guide
-
-#### Technical Stack
-- **Frontend**:
-  - Tauri 2.0
-  - React 18
-  - TypeScript 5.0
-  - Tailwind CSS 3.4
-  - Zustand (state management)
-  - Axios (HTTP client)
-
-- **Backend**:
-  - Python 3.10+
-  - FastAPI 0.109+
-  - PyTorch 2.5+ with CUDA 12.8
-  - Diffusers 0.31.0
-  - SQLite with aiosqlite
-  - Uvicorn ASGI server
-
-- **Build Tools**:
-  - Vite 5.0
-  - Rust 1.70+
-  - npm 10+
+- Complete UI Redesign
+- Performance Optimierungen
+- VRAM Management verbessert
 
 ---
 
-## Version Format
+## [1.5.0] - 2025-01-10
 
-Versions follow Semantic Versioning (SemVer): MAJOR.MINOR.PATCH
-
-- **MAJOR**: Breaking changes
-- **MINOR**: New features (backwards compatible)
-- **PATCH**: Bug fixes (backwards compatible)
-
-## Download Links
-
-- **v1.2.2** (Latest): https://page.gensparksite.com/project_backups/ai-studio-v1.2.2-with-icons.tar.gz (524 KB) ⭐ **RECOMMENDED**
-- **v1.2.1**: https://page.gensparksite.com/project_backups/ai-studio-v1.2.1-bugfixes.tar.gz (192 KB)
-- **v1.2.0**: https://page.gensparksite.com/project_backups/ai-studio-v1.2.0-final.tar.gz (182 KB)
-- **v1.1.0**: https://page.gensparksite.com/project_backups/ai-studio-v1.1.0-auto-setup.tar.gz (150 KB)
-
-## Future Roadmap
-
-### Planned Features (v1.3.0+)
-- Flux.1 model support
-- Pony Diffusion model support
-- Illustrious XL model support
-- LoRA weights support
-- Video generation (Wan model)
-- Inpainting/Outpainting
-- ControlNet integration
-- Image upscaling
-- Prompt templates
-- Generation presets
-- Export to multiple formats
-
-### Planned Improvements
-- Improved model switching performance
-- Better VRAM management
-- Enhanced UI/UX
-- More generation parameters
-- Advanced settings panel
-- Generation history filtering
-- Batch operations
-- Custom model loading
-- Cloud storage integration
+### 🆕 Added
+- Erstes öffentliches Release
+- SD1.5 Support
+- SDXL Support
+- Basic UI
 
 ---
 
-For questions or issues, see TROUBLESHOOTING.md or open an issue on GitHub.
+## Roadmap
+
+### [1.8.0] - Geplant
+- ✅ Vollständige FLUX.1 Integration mit T5-XXL
+- ✅ Wan-VAE automatischer Download
+- ✅ Qwen korrekte Pipeline
+- ✅ Spezielle Pipeline-Loader
+- ✅ VRAM-Check vor Model-Loading
+- ✅ UI-Warnungen für große Downloads
+
+### [2.0.0] - Zukunft
+- ✅ Video-Tab mit Timeline-Editor
+- ✅ Quantization-Support (8-bit/4-bit)
+- ✅ Model-Varianten (FLUX schnell/dev/pro)
+- ✅ ControlNet Support
+- ✅ Inpainting & Outpainting
+- ✅ Batch Processing
+
+---
+
+**Legend:**
+- 🆕 Added - Neue Features
+- 🔧 Changed - Änderungen an existierenden Features
+- 🐛 Fixed - Bug Fixes
+- ⚠️ Known Issues - Bekannte Probleme
+- 🗑️ Removed - Entfernte Features

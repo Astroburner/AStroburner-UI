@@ -5,7 +5,7 @@ import os
 class Settings(BaseSettings):
     # App
     APP_NAME: str = "AI Studio"
-    APP_VERSION: str = "1.6.0"
+    APP_VERSION: str = "1.7.1"
     DEBUG: bool = True
     
     # Paths

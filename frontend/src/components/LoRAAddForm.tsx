@@ -11,8 +11,11 @@ const MODEL_TYPES = [
   'Illustrious',
   'Flux-Dev',
   'Flux-Kontext',
-  'Wan2.1',
-  'Wan2.2',
+  'Wan2.1-T2V',
+  'Wan2.1-I2V',
+  'Wan2.2-T2V',
+  'Wan2.2-I2V',
+  'Wan2.2-S2V',
   'Qwen',
   'Qwen-image-edit'
 ];

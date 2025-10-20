@@ -2,7 +2,7 @@
 
 Eine moderne Desktop-Anwendung für KI-basierte Bild- und Videogenerierung mit lokalem GPU-Support.
 
-![AI Studio](https://img.shields.io/badge/version-1.6.0-blue)
+![AI Studio](https://img.shields.io/badge/version-1.7.1-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -23,6 +23,25 @@ setup.bat
 Siehe auch: [INSTALL_AFTER_EXTRACT.md](INSTALL_AFTER_EXTRACT.md)
 
 ## 🎯 Features
+
+### v1.7.1 Features (NEU!)
+- 🆕 **11 neue Modelle hinzugefügt:**
+  - **Pony Diffusion XL V6** ✅ - Anthropomorphe Charaktere (SDXL-kompatibel)
+  - **Illustrious XL** ✅ - High-Quality Anime (SDXL-kompatibel)
+  - **FLUX.1 Dev** 🚧 - Hochauflösende Bilder (24GB VRAM, spezielle Architektur)
+  - **FLUX.1 Kontext Dev** 🚧 - Instruction-based Image Editing (spezielle Architektur)
+  - **Wan 2.1 T2V 14B** 🚧 - Text-to-Video Generation (experimentell)
+  - **Wan 2.1 I2V 14B** 🚧 - Image-to-Video Generation (experimentell)
+  - **Wan 2.2 T2V 14B** 🚧 - Enhanced Text-to-Video (experimentell)
+  - **Wan 2.2 I2V 14B** 🚧 - Enhanced Image-to-Video (experimentell)
+  - **Wan 2.2 S2V 14B** 🚧 - Speech-to-Video Generation (experimentell)
+  - **Qwen-Image** 🚧 - Text-Rendering & Poster (spezielle Architektur)
+  - **Qwen-Image Edit** 🚧 - Präzise Bildbearbeitung (spezielle Architektur)
+- ✅ **LoRA Support** für alle SDXL-basierten Modelle (SD1.5, SDXL, Pony, Illustrious)
+- ✅ **Automatische Dialog Plugin Integration** für File-Picker
+- ✅ **CUDA Auto-Detection & Auto-Fix** für RTX 5090
+
+**⚠️ WICHTIGER HINWEIS:** FLUX, Wan und Qwen verwenden **spezielle Architekturen** mit eigenen VAEs, Text Encodern und Komponenten. Siehe `ADVANCED_MODELS_ARCHITECTURE.md` für Details. Diese Modelle benötigen manuelle Konfiguration in v1.7.1!
 
 ### v1.6.0 Features
 - ✅ **Text-to-Image Generation** mit mehreren Parametern
@@ -81,22 +100,29 @@ Siehe auch: [INSTALL_AFTER_EXTRACT.md](INSTALL_AFTER_EXTRACT.md)
 
 ### ⚡ Automatische Installation (Empfohlen!)
 
-**NEU in v1.2.0**: Ein einziger Befehl installiert alles automatisch!
+**NEU in v1.6.0**: Ein einziger Befehl installiert alles automatisch - **inkl. automatischer CUDA-Verifizierung und Reparatur!**
 
 ```cmd
 # 1. Download und entpacken
-# https://page.gensparksite.com/project_backups/ai-studio-v1.2.2-with-icons.tar.gz
+# https://page.gensparksite.com/project_backups/ai-studio-v1.6.0-fixed.tar.gz
 
 # 2. Automatische Installation (15-25 Min)
 cd ai-studio
 setup.bat
 
 # 3. Wähle deine GPU während der Installation:
-#    Option 1: RTX 5090 / RTX 50-series (CUDA 12.8)
+#    Option 1: RTX 5090 / RTX 50-series (CUDA 12.8) [AUTO-DETECTED]
 #    Option 2: RTX 4090 / RTX 40-series (CUDA 12.1)
 #    Option 3: RTX 3090 / RTX 30-series (CUDA 11.8)
 #    Option 4: CPU only
 ```
+
+**NEU: Automatische CUDA-Überprüfung!** 🔥
+- Setup.bat erkennt automatisch deine GPU (RTX 5090)
+- Installiert die korrekte CUDA-Version (12.8)
+- Verifiziert nach Installation automatisch, ob CUDA funktioniert
+- **Falls CUDA nicht funktioniert:** Automatischer Fix ohne Benutzereingriff!
+- **App-Start nur möglich, wenn CUDA erfolgreich verifiziert wurde**
 
 **Das war's! 🎉** Nach der Installation zeigt setup.bat ein interaktives Menü mit Quick Actions.
 

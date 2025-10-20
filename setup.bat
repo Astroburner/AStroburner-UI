@@ -86,7 +86,7 @@ call npm --version
 REM Check Git (optional)
 git --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [WARNING] Git not found (optional^)
+    echo [WARNING] Git not found - optional
 ) else (
     echo [OK] Git found:
     git --version
@@ -173,7 +173,7 @@ REM otherwise requirements.txt installs CPU-only PyTorch!
 echo.
 echo [3/6] Installing PyTorch with CUDA support.
 echo.
-echo IMPORTANT: Installing PyTorch FIRST (before other dependencies^)
+echo IMPORTANT: Installing PyTorch FIRST - before other dependencies
 echo This ensures we get the correct CUDA version
 echo.
 
@@ -200,13 +200,13 @@ if %errorlevel% neq 0 (
     
     if defined SUGGESTED_CUDA (
         if "%SUGGESTED_CUDA%"=="1" (
-            echo [AUTO-DETECTED] RTX 50-series → Recommended: CUDA 12.8
+            echo [AUTO-DETECTED] RTX 50-series - Recommended: CUDA 12.8
         )
         if "%SUGGESTED_CUDA%"=="2" (
-            echo [AUTO-DETECTED] RTX 40-series → Recommended: CUDA 12.1
+            echo [AUTO-DETECTED] RTX 40-series - Recommended: CUDA 12.1
         )
         if "%SUGGESTED_CUDA%"=="3" (
-            echo [AUTO-DETECTED] RTX 30-series → Recommended: CUDA 11.8
+            echo [AUTO-DETECTED] RTX 30-series - Recommended: CUDA 11.8
         )
     ) else (
         echo [INFO] Could not auto-detect GPU series
@@ -216,13 +216,13 @@ if %errorlevel% neq 0 (
     echo Which CUDA version should I install?
     echo.
     if defined SUGGESTED_CUDA (
-        echo %SUGGESTED_CUDA%. RTX 5090 / RTX 50-series (CUDA 12.8^) [RECOMMENDED]
+        echo %SUGGESTED_CUDA%. RTX 5090 / RTX 50-series - CUDA 12.8 [RECOMMENDED]
     ) else (
-        echo 1. RTX 5090 / RTX 50-series (CUDA 12.8^)
+        echo 1. RTX 5090 / RTX 50-series - CUDA 12.8
     )
-    echo 2. RTX 4090 / RTX 40-series (CUDA 12.1^)
-    echo 3. RTX 3090 / RTX 30-series (CUDA 11.8^)
-    echo 4. CPU only (no GPU^)
+    echo 2. RTX 4090 / RTX 40-series - CUDA 12.1
+    echo 3. RTX 3090 / RTX 30-series - CUDA 11.8
+    echo 4. CPU only - no GPU
     echo 5. Let me install manually later
     echo.
     
@@ -247,12 +247,12 @@ if %errorlevel% neq 0 (
     echo.
     echo Installing PyTorch for CUDA 12.8.
     echo.
-    echo [1/2] Uninstalling any existing PyTorch (CPU version).
+    echo [1/2] Uninstalling any existing PyTorch - CPU version
     pip uninstall torch torchvision torchaudio -y >nul 2>&1
     echo [OK] Old PyTorch removed
     echo.
     echo [2/2] Installing PyTorch with CUDA 12.8.
-    echo This will download ~2-3 GB, please wait.
+    echo This will download approximately 2-3 GB, please wait.
     echo.
     pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
     goto :verify_pytorch
@@ -261,12 +261,12 @@ if %errorlevel% neq 0 (
     echo.
     echo Installing PyTorch for CUDA 12.1.
     echo.
-    echo [1/2] Uninstalling any existing PyTorch (CPU version).
+    echo [1/2] Uninstalling any existing PyTorch - CPU version
     pip uninstall torch torchvision torchaudio -y >nul 2>&1
     echo [OK] Old PyTorch removed
     echo.
     echo [2/2] Installing PyTorch with CUDA 12.1.
-    echo This will download ~2-3 GB, please wait.
+    echo This will download approximately 2-3 GB, please wait.
     echo.
     pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
     goto :verify_pytorch
@@ -275,12 +275,12 @@ if %errorlevel% neq 0 (
     echo.
     echo Installing PyTorch for CUDA 11.8.
     echo.
-    echo [1/2] Uninstalling any existing PyTorch (CPU version).
+    echo [1/2] Uninstalling any existing PyTorch - CPU version
     pip uninstall torch torchvision torchaudio -y >nul 2>&1
     echo [OK] Old PyTorch removed
     echo.
     echo [2/2] Installing PyTorch with CUDA 11.8.
-    echo This will download ~2-3 GB, please wait.
+    echo This will download approximately 2-3 GB, please wait.
     echo.
     pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
     goto :verify_pytorch
@@ -330,7 +330,7 @@ if %errorlevel% neq 0 (
         echo    WARNING: CUDA NOT DETECTED!
         echo ========================================
         echo.
-        echo PyTorch is installed but CUDA is FALSE (CPU-only mode^)
+        echo PyTorch is installed but CUDA is FALSE - CPU-only mode
         echo.
         echo This means you have the wrong PyTorch version!
         echo Your GPU will NOT be used for generation.
@@ -360,7 +360,7 @@ if %errorlevel% neq 0 (
             
             echo.
             echo [2/3] Installing PyTorch with CUDA 12.8.
-            echo This will download ~2-3 GB.
+            echo This will download approximately 2-3 GB.
             echo.
             pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
             
@@ -402,7 +402,7 @@ if %errorlevel% neq 0 (
     ) else (
         echo.
         echo ========================================
-        echo    GPU ACCELERATION ENABLED! 🚀
+        echo    GPU ACCELERATION ENABLED!
         echo ========================================
         echo.
         echo Your RTX 5090 is ready for AI generation!
@@ -505,7 +505,7 @@ REM 5. RUST CHECK (for Tauri)
 REM ========================================
 
 echo.
-echo [5/6] Checking Rust installation (required for Tauri^).
+echo [5/6] Checking Rust installation - required for Tauri
 echo.
 
 set RUST_MISSING=
@@ -514,7 +514,7 @@ rustc --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo [WARNING] Rust not found!
     echo.
-    echo Rust is required for Tauri (the desktop framework^).
+    echo Rust is required for Tauri - the desktop framework
     echo.
     echo To install Rust:
     echo 1. Visit: https://rustup.rs/
@@ -592,7 +592,7 @@ if not exist "frontend\node_modules\" (
 REM Check if Rust is available
 rustc --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [WARNING] Rust not installed (required for desktop app^)
+    echo [WARNING] Rust not installed - required for desktop app
     set RUST_MISSING=1
 ) else (
     echo [OK] Rust is installed
@@ -625,6 +625,91 @@ if defined SETUP_FAILED (
     goto :end_menu
 )
 
+REM ========================================
+REM CUDA VERIFICATION AND AUTO-FIX
+REM ========================================
+
+echo.
+echo Verifying CUDA installation.
+echo.
+
+cd backend
+call venv\Scripts\activate
+
+REM Test CUDA availability
+python -c "import torch; import sys; sys.exit(0 if torch.cuda.is_available() else 1)" >nul 2>&1
+
+if %errorlevel% neq 0 (
+    echo.
+    echo ========================================
+    echo    CUDA NOT AVAILABLE - AUTO-FIX REQUIRED
+    echo ========================================
+    echo.
+    echo Current status: PyTorch installed but CUDA is False
+    echo This means you have CPU-only PyTorch installed.
+    echo.
+    echo I will now automatically fix this by:
+    echo 1. Uninstalling CPU-only PyTorch
+    echo 2. Installing PyTorch with CUDA 12.8 support
+    echo.
+    echo This will download approximately 2-3 GB and takes 3-5 minutes.
+    echo.
+    pause
+    
+    echo.
+    echo [AUTO-FIX 1/3] Uninstalling CPU-only PyTorch.
+    pip uninstall torch torchvision torchaudio -y >nul 2>&1
+    echo [OK] Old PyTorch removed
+    
+    echo.
+    echo [AUTO-FIX 2/3] Installing PyTorch with CUDA 12.8.
+    echo Downloading... Please wait...
+    echo.
+    pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+    
+    if %errorlevel% neq 0 (
+        echo.
+        echo [ERROR] Failed to install PyTorch with CUDA!
+        echo.
+        echo Please check your internet connection and try again.
+        cd ..
+        pause
+        goto :end_menu
+    )
+    
+    echo [OK] PyTorch with CUDA 12.8 installed
+    
+    echo.
+    echo [AUTO-FIX 3/3] Verifying CUDA installation.
+    echo.
+    
+    python -c "import torch; print('=' * 50); print('PyTorch Version:', torch.__version__); print('CUDA Available:', torch.cuda.is_available()); print('CUDA Version:', torch.version.cuda if torch.cuda.is_available() else 'N/A'); print('GPU Count:', torch.cuda.device_count() if torch.cuda.is_available() else 0); print('GPU Name:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'N/A'); print('=' * 50)"
+    
+    if %errorlevel% neq 0 (
+        echo.
+        echo [ERROR] CUDA verification failed!
+        cd ..
+        pause
+        goto :end_menu
+    )
+    
+    echo.
+    echo ========================================
+    echo    CUDA FIX SUCCESSFUL!
+    echo ========================================
+    echo.
+    echo Your RTX 5090 is now properly configured!
+    echo.
+    pause
+) else (
+    echo [OK] CUDA is available!
+    echo.
+    python -c "import torch; print('PyTorch:', torch.__version__); print('CUDA:', torch.cuda.is_available()); print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'N/A')"
+    echo.
+)
+
+cd ..
+
 if defined RUST_MISSING (
     echo.
     echo [SETUP ALMOST COMPLETE]
@@ -650,11 +735,11 @@ echo ========================================
 echo    Installation Summary
 echo ========================================
 echo.
-echo Backend:  Ready (Python + PyTorch^)
-echo Frontend: Ready (Node.js + React^)
-echo Desktop:  Ready (Rust + Tauri^)
+echo Backend:  Ready - Python + PyTorch
+echo Frontend: Ready - Node.js + React
+echo Desktop:  Ready - Rust + Tauri
 echo.
-echo Have fun generating AI art with your RTX 5090! 🚀
+echo Have fun generating AI art with your RTX 5090!
 echo.
 
 :end_menu
@@ -670,7 +755,7 @@ echo ========================================
 echo    QUICK ACTIONS
 echo ========================================
 echo.
-echo 1. Start AI Studio (automatic^)
+echo 1. Start AI Studio - automatic
 echo 2. Start Backend only
 echo 3. Start Frontend only
 echo 4. Open project folder
@@ -691,6 +776,39 @@ if errorlevel 1 goto :action_start_all
 
 :action_start_all
     echo.
+    echo Verifying CUDA before starting.
+    echo.
+    
+    REM Final CUDA check before allowing app start
+    cd backend
+    call venv\Scripts\activate >nul 2>&1
+    python -c "import torch; import sys; sys.exit(0 if torch.cuda.is_available() else 1)" >nul 2>&1
+    
+    if %errorlevel% neq 0 (
+        cd ..
+        echo.
+        echo ========================================
+        echo    CUDA NOT AVAILABLE!
+        echo ========================================
+        echo.
+        echo [ERROR] CUDA is still not available!
+        echo.
+        echo Your RTX 5090 GPU cannot be used in this state.
+        echo.
+        echo Please run the CUDA fix manually:
+        echo   cd backend
+        echo   fix_cuda.bat
+        echo.
+        echo Or run setup.bat again to retry automatic fix.
+        echo.
+        echo ========================================
+        pause
+        goto :end_menu
+    )
+    
+    cd ..
+    echo [OK] CUDA verified - GPU ready!
+    echo.
     echo Starting AI Studio.
     echo This will open two terminal windows.
     echo.
@@ -704,6 +822,28 @@ if errorlevel 1 goto :action_start_all
     goto :end_menu_loop
 
 :action_start_backend
+    echo.
+    echo Verifying CUDA before starting backend.
+    echo.
+    
+    REM CUDA check before backend start
+    cd backend
+    call venv\Scripts\activate >nul 2>&1
+    python -c "import torch; import sys; sys.exit(0 if torch.cuda.is_available() else 1)" >nul 2>&1
+    
+    if %errorlevel% neq 0 (
+        cd ..
+        echo.
+        echo [WARNING] CUDA is not available!
+        echo Backend will run but GPU acceleration will be disabled.
+        echo.
+        choice /C YN /M "Continue anyway"
+        if errorlevel 2 goto :end_menu
+    ) else (
+        echo [OK] CUDA verified - GPU ready!
+        cd ..
+    )
+    
     echo.
     echo Starting Backend only.
     echo.

@@ -1,6 +1,6 @@
 # ============================================
 # AI Studio Backend Dependencies
-# Version: 1.6.0
+# Version: 1.7.1
 # ============================================
 
 # ============================================
@@ -97,8 +97,21 @@ aiofiles==24.1.0
 # compel==2.0.3              # Advanced prompt weighting
 # controlnet-aux==0.0.9       # ControlNet preprocessors
 # invisible-watermark==0.2.0  # Watermark support
-# sentencepiece==0.2.0        # For some tokenizers
-# protobuf==5.28.3            # For some models
+sentencepiece>=0.2.1         # For Qwen tokenizers
+protobuf==5.28.3             # For Qwen and Flux models
+
+# ============================================
+# v1.7.1 New Model Support
+# ============================================
+# Additional dependencies for new models:
+# - Pony Diffusion XL (uses SDXL pipeline)
+# - Illustrious XL (uses SDXL pipeline)
+# - Flux Dev/Kontext (uses DiffusionPipeline)
+# - Wan 2.1/2.2 (video generation)
+# - Qwen Image/Edit (image generation/editing)
+#
+# Most new models work with existing diffusers installation.
+# Video models (Wan2.1/2.2) may require additional setup.
 
 # ============================================
 # Performance Optimization (Optional)

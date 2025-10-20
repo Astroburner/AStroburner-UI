@@ -1,147 +1,156 @@
 # Contributing to AI Studio
 
-Vielen Dank für dein Interesse an AI Studio! 🎉
+Vielen Dank für Dein Interesse an AI Studio! 🎉
 
-## Wie du beitragen kannst
+## 🚀 Quick Start
 
-### 1. Bug Reports
+### Voraussetzungen
+- Python 3.10+
+- Node.js 18+
+- Rust 1.70+ (für Tauri)
+- NVIDIA GPU mit CUDA Support (empfohlen)
 
-Wenn du einen Bug findest:
-1. Check ob der Bug schon gemeldet wurde (GitHub Issues)
-2. Erstelle ein neues Issue mit:
-   - Beschreibung des Problems
-   - Schritte zum Reproduzieren
-   - Erwartetes vs. tatsächliches Verhalten
-   - System Info (OS, GPU, Python Version)
-   - Error Logs (Backend Console + Browser Console)
-
-### 2. Feature Requests
-
-Feature Ideen sind willkommen!
-1. Erstelle ein Issue mit Tag "enhancement"
-2. Beschreibe das Feature detailliert
-3. Erkläre den Use Case
-
-### 3. Code Contributions
-
-#### Setup Development Environment
-
+### Setup
 ```bash
-# Fork das Repository
-git clone https://github.com/YOUR_USERNAME/ai-studio.git
-cd ai-studio
+# 1. Repository klonen
+git clone https://github.com/Astroburner/AStroburner-UI.git
+cd AStroburner-UI
 
-# Backend Setup
-cd backend
-python -m venv venv
-source venv/bin/activate  # oder venv\Scripts\activate
-pip install -r requirements.txt
-
-# Frontend Setup
-cd ../frontend
-npm install
+# 2. Setup ausführen
+setup.bat
 ```
 
-#### Entwicklungs-Workflow
-
-```bash
-# Create Feature Branch
-git checkout -b feature/my-new-feature
-
-# Make changes...
-
-# Test Backend
-cd backend
-python main.py
-# Test API Endpoints
-
-# Test Frontend
-cd frontend
-npm run dev
-# Test UI Changes
-
-# Commit
-git add .
-git commit -m "feat: add my new feature"
-
-# Push
-git push origin feature/my-new-feature
-
-# Create Pull Request on GitHub
-```
-
-#### Code Style
-
-**Python (Backend):**
-- Follow PEP 8
-- Use type hints
-- Add docstrings
-- Keep functions small
-
-**TypeScript (Frontend):**
-- Use functional components
-- Follow React best practices
-- Use TypeScript types
-- Keep components modular
-
-#### Commit Messages
-
-Verwende Conventional Commits:
-- `feat:` Neues Feature
-- `fix:` Bug Fix
-- `docs:` Documentation
-- `style:` Code Formatting
-- `refactor:` Code Refactoring
-- `test:` Tests
-- `chore:` Build/Dependencies
-
-Beispiele:
-```
-feat: add video generation support
-fix: resolve VRAM overflow on large images
-docs: update installation guide
-```
-
-### 4. Documentation
-
-Verbesserungen an Dokumentation sind immer willkommen:
-- README.md
-- SETUP.md
-- Code Comments
-- API Documentation
-
-### 5. Testing
-
-- Test neue Features gründlich
-- Test auf verschiedenen Systemen wenn möglich
-- Füge Screenshots hinzu bei UI Changes
-
-## Projekt Struktur
+## 📋 Code Struktur
 
 ```
 ai-studio/
-├── backend/              # Python Backend
-│   ├── api/             # FastAPI Routes
-│   ├── core/            # Core Logic (GPU, Models)
-│   ├── models/          # Database Models
-│   └── utils/           # Utilities
-│
-├── frontend/            # React Frontend
-│   ├── src/
-│   │   ├── components/ # React Components
-│   │   ├── hooks/      # State Management
-│   │   ├── services/   # API Client
-│   │   └── types/      # TypeScript Types
-│   └── src-tauri/      # Tauri Desktop
-│
-└── docs/               # Documentation
+├── backend/           # Python FastAPI Backend
+│   ├── api/          # API Routes
+│   ├── core/         # Model Manager, GPU Monitor
+│   ├── models/       # Database Models
+│   └── config.py     # Konfiguration
+├── frontend/         # Tauri + React Frontend
+│   ├── src/         # React Components
+│   ├── src-tauri/   # Rust Tauri Backend
+│   └── public/      # Static Assets
+└── docs/            # Dokumentation
 ```
 
-## Fragen?
+## 🔧 Development Workflow
 
-- Erstelle ein Issue auf GitHub
-- Oder kontaktiere [@Astroburner-AI](https://www.youtube.com/@Astroburner-AI)
+### Backend Development
+```bash
+cd backend
+venv\Scripts\activate
+python main.py
+```
+
+### Frontend Development
+```bash
+cd frontend
+npm run tauri dev
+```
+
+## 📝 Coding Standards
+
+### Python (Backend)
+- **Style Guide:** PEP 8
+- **Type Hints:** Verwende Type Hints wo möglich
+- **Docstrings:** Google-Style Docstrings
+- **Formatting:** Black (line length 100)
+
+### TypeScript (Frontend)
+- **Style Guide:** Airbnb Style Guide
+- **Type Safety:** Strikte TypeScript Konfiguration
+- **Components:** Funktionale Komponenten mit Hooks
+- **Styling:** Tailwind CSS
+
+### Rust (Tauri)
+- **Style Guide:** Rust Standard Style
+- **Formatting:** `rustfmt`
+- **Linting:** `clippy`
+
+## 🐛 Bug Reports
+
+Bitte verwende die [Bug Report Template](.github/ISSUE_TEMPLATE/bug_report.md) und füge folgende Informationen hinzu:
+- OS und Version
+- GPU Modell und VRAM
+- AI Studio Version
+- Reproduktionsschritte
+- Logs (falls verfügbar)
+
+## ✨ Feature Requests
+
+Bitte verwende die [Feature Request Template](.github/ISSUE_TEMPLATE/feature_request.md) und beschreibe:
+- Das Problem / Use Case
+- Vorgeschlagene Lösung
+- Alternativen
+- Mockups (falls möglich)
+
+## 🔄 Pull Request Process
+
+1. **Fork** das Repository
+2. **Branch** erstellen (`git checkout -b feature/AmazingFeature`)
+3. **Commit** Deine Änderungen (`git commit -m 'Add some AmazingFeature'`)
+4. **Push** zum Branch (`git push origin feature/AmazingFeature`)
+5. **Pull Request** öffnen
+
+### PR Checklist
+- [ ] Code folgt dem Style Guide
+- [ ] Tests wurden hinzugefügt/aktualisiert
+- [ ] Dokumentation wurde aktualisiert
+- [ ] Commit-Messages sind aussagekräftig
+- [ ] Branch ist up-to-date mit `main`
+
+## 🧪 Testing
+
+### Backend Tests
+```bash
+cd backend
+pytest
+```
+
+### Frontend Tests
+```bash
+cd frontend
+npm run test
+```
+
+## 📚 Dokumentation
+
+Wenn Du Code-Änderungen vornimmst, bitte aktualisiere auch:
+- README.md (falls nötig)
+- Code-Kommentare
+- Docstrings
+- API-Dokumentation
+
+## 🎨 Design Guidelines
+
+### UI/UX
+- **Dark Theme First:** Design für Dark Mode
+- **Responsive:** Alle Komponenten müssen responsive sein
+- **Accessibility:** WCAG 2.1 Level AA
+- **Performance:** Lazy Loading für große Listen
+
+### Icons
+- Verwende React Icons (`react-icons`)
+- Konsistente Icon-Größen (16px, 20px, 24px)
+
+## 🔐 Security
+
+Wenn Du ein Security-Problem findest:
+- **NICHT** als Issue posten
+- Kontaktiere direkt: [Deine E-Mail]
+- Verwende PGP wenn möglich
+
+## 📄 Lizenz
+
+By contributing, you agree that your contributions will be licensed under the MIT License.
+
+## 🙏 Danke!
+
+Jeder Beitrag, egal wie klein, ist willkommen und geschätzt! 💚
 
 ---
 
-**Danke für deinen Beitrag! 🚀**
+**Fragen?** Öffne ein Issue oder kontaktiere uns auf Discord.

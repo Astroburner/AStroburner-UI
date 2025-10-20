@@ -55,6 +55,83 @@ class ModelManager:
             "pipeline_class": AutoPipelineForText2Image,
             "img2img_class": AutoPipelineForImage2Image,
             "type": "text2img"
+        },
+        "pony": {
+            "name": "Pony Diffusion XL V6",
+            "model_id": "LyliaEngine/Pony_Diffusion_V6_XL",
+            "pipeline_class": StableDiffusionXLPipeline,
+            "img2img_class": StableDiffusionXLImg2ImgPipeline,
+            "type": "text2img"
+        },
+        "illustrious": {
+            "name": "Illustrious XL",
+            "model_id": "OnomaAIResearch/Illustrious-xl-early-release-v0",
+            "pipeline_class": StableDiffusionXLPipeline,
+            "img2img_class": StableDiffusionXLImg2ImgPipeline,
+            "type": "text2img"
+        },
+        "flux-dev": {
+            "name": "FLUX.1 Dev",
+            "model_id": "black-forest-labs/FLUX.1-dev",
+            "pipeline_class": DiffusionPipeline,
+            "img2img_class": None,
+            "type": "text2img"
+        },
+        "flux-kontext": {
+            "name": "FLUX.1 Kontext Dev",
+            "model_id": "black-forest-labs/FLUX.1-Kontext-dev",
+            "pipeline_class": DiffusionPipeline,
+            "img2img_class": None,
+            "type": "image2image"
+        },
+        "wan21-t2v": {
+            "name": "Wan 2.1 T2V 14B",
+            "model_id": "Wan-AI/Wan2.1-T2V-14B",
+            "pipeline_class": DiffusionPipeline,
+            "img2img_class": None,
+            "type": "text2video"
+        },
+        "wan21-i2v": {
+            "name": "Wan 2.1 I2V 14B",
+            "model_id": "Wan-AI/Wan2.1-I2V-14B",
+            "pipeline_class": DiffusionPipeline,
+            "img2img_class": None,
+            "type": "image2video"
+        },
+        "wan22-t2v": {
+            "name": "Wan 2.2 T2V 14B",
+            "model_id": "Wan-AI/Wan2.2-T2V-14B",
+            "pipeline_class": DiffusionPipeline,
+            "img2img_class": None,
+            "type": "text2video"
+        },
+        "wan22-i2v": {
+            "name": "Wan 2.2 I2V 14B",
+            "model_id": "Wan-AI/Wan2.2-I2V-14B",
+            "pipeline_class": DiffusionPipeline,
+            "img2img_class": None,
+            "type": "image2video"
+        },
+        "wan22-s2v": {
+            "name": "Wan 2.2 S2V 14B",
+            "model_id": "Wan-AI/Wan2.2-S2V-14B",
+            "pipeline_class": DiffusionPipeline,
+            "img2img_class": None,
+            "type": "speech2video"
+        },
+        "qwen": {
+            "name": "Qwen-Image",
+            "model_id": "Qwen/Qwen-Image",
+            "pipeline_class": DiffusionPipeline,
+            "img2img_class": None,
+            "type": "text2img"
+        },
+        "qwen-image-edit": {
+            "name": "Qwen-Image Edit",
+            "model_id": "Qwen/Qwen-Image",
+            "pipeline_class": DiffusionPipeline,
+            "img2img_class": None,
+            "type": "image2image"
         }
     }
     
