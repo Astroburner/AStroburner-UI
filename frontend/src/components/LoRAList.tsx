@@ -17,6 +17,19 @@ export default function LoRAList({ onLoRAsChanged }: LoRAListProps) {
     loadLoRAs();
   }, [currentModel]);
 
+  // Auto-reload on tab switch to Settings
+  useEffect(() => {
+    // Check if component is visible by checking if parent is mounted
+    const intervalId = setInterval(() => {
+      // Only reload if not currently loading
+      if (!isLoading) {
+        loadLoRAs();
+      }
+    }, 1000); // Check every second for updates
+
+    return () => clearInterval(intervalId);
+  }, [isLoading]);
+
   const loadLoRAs = async () => {
     try {
       setIsLoading(true);

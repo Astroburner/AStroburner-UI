@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { FiImage, FiLoader, FiUpload, FiX, FiPackage } from 'react-icons/fi';
 import { useAppStore } from '../hooks/useAppStore';
 import { apiService } from '../services/api';
@@ -36,6 +36,27 @@ export default function GeneratePanel() {
 
   const [error, setError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
+  // Refs for auto-resizing textareas
+  const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const negativePromptTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize textarea function
+  const autoResizeTextarea = (textarea: HTMLTextAreaElement | null) => {
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  };
+
+  // Auto-resize on prompt changes
+  useEffect(() => {
+    autoResizeTextarea(promptTextareaRef.current);
+  }, [prompt]);
+
+  useEffect(() => {
+    autoResizeTextarea(negativePromptTextareaRef.current);
+  }, [negativePrompt]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -215,10 +236,11 @@ export default function GeneratePanel() {
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-300">Prompt</label>
         <textarea
+          ref={promptTextareaRef}
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="Beschreibe was du generieren möchtest..."
-          className="w-full h-24 px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+          className="w-full min-h-[96px] px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none overflow-hidden"
           disabled={isGenerating}
         />
       </div>
@@ -227,10 +249,11 @@ export default function GeneratePanel() {
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-300">Negative Prompt (Optional)</label>
         <textarea
+          ref={negativePromptTextareaRef}
           value={negativePrompt}
           onChange={(e) => setNegativePrompt(e.target.value)}
           placeholder="Was soll nicht im Bild sein..."
-          className="w-full h-20 px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+          className="w-full min-h-[80px] px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none overflow-hidden"
           disabled={isGenerating}
         />
       </div>

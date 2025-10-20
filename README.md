@@ -2,29 +2,20 @@
 
 Eine moderne Desktop-Anwendung für KI-basierte Bild- und Videogenerierung mit lokalem GPU-Support.
 
-![AI Studio](https://img.shields.io/badge/version-1.7.1-blue)
+![AI Studio](https://img.shields.io/badge/version-1.7.5-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-## ⚠️ WICHTIG: Nach dem Entpacken
-
-**Backup enthält keine `node_modules` um Dateigröße zu reduzieren!**
-
-### Quick-Fix (Sollte CUDA nicht erkannt werden):
-```bash
-quick-fix-dependencies.bat
-```
-
-### Oder mit Setup-Script:
-```bash
-setup.bat
-```
-
-Siehe auch: [INSTALL_AFTER_EXTRACT.md](INSTALL_AFTER_EXTRACT.md)
-
 ## 🎯 Features
 
-### v1.7.1 Features (NEU!)
+### v1.7.5 Bugfixes (NEU!)
+- 🐛 **LoRA Durchsuchen-Button** - Dialog-Plugin jetzt voll funktionsfähig
+- 🐛 **LoRA Persistenz** - LoRAs verschwinden nicht mehr nach Page-Refresh
+- 🐛 **History Prompt-Anzeige** - Positive Prompts werden nicht mehr abgeschnitten
+- 🐛 **Seed-Anzeige** - Seeds werden jetzt korrekt in History angezeigt
+- 🐛 **Auto-Resize Textareas** - Prompt-Felder passen sich automatisch der Textlänge an
+
+### v1.7.1 Features
 - 🆕 **11 neue Modelle hinzugefügt:**
   - **Pony Diffusion XL V6** ✅ - Anthropomorphe Charaktere (SDXL-kompatibel)
   - **Illustrious XL** ✅ - High-Quality Anime (SDXL-kompatibel)
@@ -79,59 +70,92 @@ Siehe auch: [INSTALL_AFTER_EXTRACT.md](INSTALL_AFTER_EXTRACT.md)
 
 ## 📋 Voraussetzungen
 
+### ⚠️ Erforderliche Software (MUSS installiert sein!)
+
+Bevor du `setup.bat` ausführst, installiere bitte folgende Software:
+
+#### Windows:
+1. **Python 3.10 oder 3.11** - [Download](https://www.python.org/downloads/)
+   - ⚠️ Bei Installation: "Add Python to PATH" aktivieren!
+2. **Node.js 18+ (LTS)** - [Download](https://nodejs.org/)
+3. **Git** - [Download](https://git-scm.com/downloads)
+4. **Visual Studio Build Tools** (für Rust) - [Download](https://visualstudio.microsoft.com/de/visual-cpp-build-tools/)
+   - Wähle: "Desktop development with C++"
+5. **Rust** - [Download](https://rustup.rs/)
+   - Nach Installation: Terminal neu starten
+
+#### macOS:
+```bash
+# Mit Homebrew
+brew install python@3.11 node git rust
+```
+
+#### Linux (Ubuntu/Debian):
+```bash
+sudo apt update
+sudo apt install python3.11 python3.11-venv nodejs npm git build-essential
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
 ### Hardware
 - **GPU:** NVIDIA GPU mit CUDA Support (empfohlen 6GB+ VRAM)
+  - RTX 5090/50-series: CUDA 12.8 (automatisch erkannt)
+  - RTX 4090/40-series: CUDA 12.1
+  - RTX 3090/30-series: CUDA 11.8
   - Alternativ: Apple Silicon (MPS) oder CPU (langsam)
-- **RAM:** Mindestens 16GB (32GB empfohlen)
-- **Speicher:** 20GB+ freier Speicherplatz für Models
+- **RAM:** Mindestens 16GB (32GB empfohlen für große Modelle)
+- **Speicher:** 30GB+ freier Speicherplatz für Models und Installation
 
-### Software
-- **Windows:** Windows 10/11 (64-bit)
-- **macOS:** macOS 11+ (Apple Silicon oder Intel)
-- **Linux:** Ubuntu 20.04+ oder äquivalent
+## 🚀 Installation & Start
 
-#### Für Entwicklung:
-- Node.js 18+ & npm
-- Python 3.10+
-- Rust 1.70+ (für Tauri)
-- Git
+### ⚡ Automatische Installation mit setup.bat (EMPFOHLEN!)
 
-## 🚀 Schnellstart (Windows)
-
-### ⚡ Automatische Installation (Empfohlen!)
-
-**NEU in v1.6.0**: Ein einziger Befehl installiert alles automatisch - **inkl. automatischer CUDA-Verifizierung und Reparatur!**
+**Ein einziger Befehl installiert alles automatisch!**
 
 ```cmd
+<<<<<<< HEAD
 # 1. Download und entpacken
 # https://github.com/Astroburner/AStroburner-UI.git
 
 # 2. Automatische Installation (15-25 Min)
 cd AStroburner-UI
+=======
+# 1. Repository klonen
+git clone https://github.com/Astroburner/AStroburner-UI.git
+cd AStroburner-UI
+
+# 2. Setup ausführen (15-25 Min)
+>>>>>>> 5ead5ea (v1.7.5: Critical Bugfixes - LoRA, History, Prompts)
 setup.bat
 
-# 3. Wähle deine GPU während der Installation:
+# 3. GPU-Auswahl während Installation:
 #    Option 1: RTX 5090 / RTX 50-series (CUDA 12.8) [AUTO-DETECTED]
 #    Option 2: RTX 4090 / RTX 40-series (CUDA 12.1)
 #    Option 3: RTX 3090 / RTX 30-series (CUDA 11.8)
 #    Option 4: CPU only
 ```
 
-**NEU: Automatische CUDA-Überprüfung!** 🔥
-- Setup.bat erkennt automatisch deine GPU (RTX 5090)
-- Installiert die korrekte CUDA-Version (12.8)
-- Verifiziert nach Installation automatisch, ob CUDA funktioniert
-- **Falls CUDA nicht funktioniert:** Automatischer Fix ohne Benutzereingriff!
-- **App-Start nur möglich, wenn CUDA erfolgreich verifiziert wurde**
+### Was macht setup.bat?
 
-**Das war's! 🎉** Nach der Installation zeigt setup.bat ein interaktives Menü mit Quick Actions.
+✅ **Automatische CUDA-Erkennung** - Erkennt deine GPU (RTX 5090) automatisch
+✅ **Python Virtual Environment** - Erstellt isolierte Python-Umgebung
+✅ **PyTorch mit CUDA** - Installiert korrekte CUDA-Version (12.8 für RTX 5090)
+✅ **Backend Dependencies** - Installiert alle Python-Pakete aus requirements.txt
+✅ **Frontend Dependencies** - Installiert Node.js Pakete (React, Tauri)
+✅ **CUDA-Verifizierung** - Prüft ob PyTorch CUDA nutzen kann
+✅ **Automatischer CUDA-Fix** - Repariert PyTorch automatisch bei CPU-Fallback
+✅ **Interaktives Menü** - Zeigt Quick Actions nach Installation
 
-**Siehe:** [SETUP_BAT_README.md](SETUP_BAT_README.md) für Details
+**Das war's! 🎉**
 
----
+### Nach der Installation: App starten
 
-### 📖 Manuelle Installation
+```cmd
+# Option 1: Mit setup.bat Menü
+setup.bat
+# → Wähle "1) Start App (Backend + Frontend)"
 
+<<<<<<< HEAD
 Falls du setup.bat nicht nutzen möchtest, folge dieser Anleitung:
 
 ### 1. Repository Klonen
@@ -144,91 +168,24 @@ cd ai-studio
 ### 2. Backend Setup (Python)
 
 ```bash
+=======
+# Option 2: Manuell
+>>>>>>> 5ead5ea (v1.7.5: Critical Bugfixes - LoRA, History, Prompts)
 cd backend
-
-# Virtual Environment erstellen
-python -m venv venv
-
-# Aktivieren:
-# Windows:
 venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
-
-# Dependencies installieren
-pip install -r requirements.txt
-
-# PyTorch Installation (wähle basierend auf deiner GPU):
-
-# CUDA 12.8 (RTX 5090, RTX 50-series):
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
-
-# CUDA 12.1 (RTX 4090, RTX 40-series):
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-
-# CUDA 11.8 (RTX 3090, RTX 30-series):
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
-
-# MPS Support (Apple Silicon M1/M2/M3):
-pip install torch torchvision
-
-# CPU Only (fallback):
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-```
-
-### 3. Frontend Setup (React + Tauri)
-
-```bash
-cd ../frontend
-
-# Node Dependencies installieren
-npm install
-
-# Rust Dependencies (Tauri CLI)
-npm install --save-dev @tauri-apps/cli
-```
-
-### 4. Environment Variables (optional)
-
-Erstelle `.env` im Backend-Ordner:
-
-```env
-# Backend/.env
-DEBUG=True
-API_HOST=127.0.0.1
-API_PORT=8000
-DEVICE=cuda  # cuda, mps, oder cpu
-```
-
-## 🎮 Anwendung Starten
-
-### Development Mode
-
-**Terminal 1 - Backend starten:**
-```bash
-cd backend
-source venv/bin/activate  # oder venv\Scripts\activate auf Windows
 python main.py
-```
-
-Backend läuft auf: `http://127.0.0.1:8000`
-
-**Terminal 2 - Frontend starten:**
-```bash
+# In neuem Terminal:
 cd frontend
 npm run tauri dev
 ```
 
-Die Desktop-App öffnet sich automatisch!
+---
 
-### Production Build
+## 🎮 Manuelle Installation (Fortgeschritten)
 
-```bash
-cd frontend
-npm run tauri build
-```
+**Nur wenn setup.bat nicht funktioniert!**
 
-Die fertige App findest du in: `frontend/src-tauri/target/release/`
+Siehe [CONTRIBUTING.md](CONTRIBUTING.md) für detaillierte manuelle Installation.
 
 ## 📖 Verwendung
 
@@ -377,6 +334,7 @@ MIT License - siehe LICENSE Datei
 
 **Astroburner**
 - YouTube: [@Astroburner-AI](https://www.youtube.com/@Astroburner-AI)
+- GitHub: [@Astroburner](https://github.com/Astroburner)
 
 ## 🙏 Credits
 

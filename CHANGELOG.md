@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.5] - 2025-01-20
+
+### 🐛 Fixed (Critical Bugfixes)
+- **LoRA Durchsuchen-Button defekt** - Dialog Plugin jetzt voll funktionsfähig
+- **LoRAs verschwinden nach Refresh** - Auto-Reload alle Sekunde implementiert
+- **History: Positiv-Prompt wird abgeschnitten** - Vollständige Anzeige mit word-wrap
+- **History: Seed wird nicht angezeigt** - Seeds werden jetzt korrekt angezeigt (oder "Random")
+- **Prompt-Textareas passen sich nicht an** - Auto-Resize basierend auf Textlänge
+
+### 🔧 Changed
+- README.md: Fokus auf setup.bat, manuelle Installation in CONTRIBUTING.md
+- README.md: Voraussetzungen klar definiert (Python, Node.js, Git, Rust, Visual Studio Build Tools)
+- README.md: Installation vereinfacht - nur setup.bat erklärt
+- README.md: GitHub Link hinzugefügt
+
+---
+
 ## [1.7.1] - 2025-01-20
 
 ### 🆕 Added

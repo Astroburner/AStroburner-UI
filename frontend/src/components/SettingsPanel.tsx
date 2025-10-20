@@ -243,7 +243,7 @@ export default function SettingsPanel() {
           <div className="text-gray-300 space-y-2 text-sm">
             <div className="flex justify-between">
               <span>Version:</span>
-              <span className="font-medium">1.6.0</span>
+              <span className="font-medium">1.7.5</span>
             </div>
             <div className="flex justify-between">
               <span>Build:</span>

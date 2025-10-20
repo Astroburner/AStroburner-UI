@@ -166,7 +166,7 @@ export default function HistoryPanel() {
                   {/* Prompt und Actions */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="text-white font-medium text-sm line-clamp-2" title={gen.prompt}>
+                      <h3 className="text-white font-medium text-sm" title={gen.prompt} style={{ wordWrap: 'break-word', overflowWrap: 'break-word', maxWidth: '100%' }}>
                         {gen.prompt}
                       </h3>
                       <div className="flex gap-1 flex-shrink-0">
@@ -207,11 +207,9 @@ export default function HistoryPanel() {
                     <div className="text-gray-400">
                       Steps: <span className="text-gray-300">{gen.steps}</span>
                     </div>
-                    {gen.seed && (
-                      <div className="text-gray-400">
-                        Seed: <span className="text-gray-300">{gen.seed}</span>
-                      </div>
-                    )}
+                    <div className="text-gray-400">
+                      Seed: <span className="text-gray-300">{gen.seed || 'Random'}</span>
+                    </div>
                   </div>
 
                   {/* Rechte Spalte */}
