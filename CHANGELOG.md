@@ -2,7 +2,54 @@
 
 All notable changes to AI Studio will be documented in this file.
 
-## [v1.2.0] - 2025-01-20
+## [v1.2.2] - 2025-10-20
+
+### 🐛 Critical Fixes
+- **Missing Icon Files**: Added complete icon set for Tauri Windows build
+  - Error fixed: `icons/icon.ico not found; required for Windows Resource file`
+  - Added icon.png (1024x1024 base)
+  - Added icon.ico (Windows multi-size: 16, 32, 48, 64, 128, 256)
+  - Added 32x32.png, 128x128.png, 128x128@2x.png, 512x512.png
+- **Icon Design**: Dark blue theme with "AI" logo
+  - Background: #1a1a2e (dark blue)
+  - Circle: #16213e (navy)
+  - Text: #e94560 (red)
+
+### 📦 Added
+- `frontend/src-tauri/icons/` directory with complete icon set
+- `create_icons.sh` script for regenerating icons
+- `ICON_SETUP_WINDOWS.md` guide for manual icon setup
+
+### 🔧 Updated
+- `tauri.conf.json` - version 1.2.0 and all icon paths
+- Bundle configuration with complete icon array
+
+---
+
+## [v1.2.1] - 2025-10-20
+
+### 🐛 Critical Fixes
+- **Tauri Cargo Error**: Fixed shell-open feature not found
+  - Error: `tauri does not have feature shell-open`
+  - Solution: Replaced with `tauri-plugin-shell = "2.0"`
+  - Tauri 2.0 moved shell to separate plugin
+- **Pydantic Warning**: Fixed model_key namespace conflict
+  - Warning: `Field "model_key" conflicts with protected namespace "model_"`
+  - Solution: Added `model_config = {"protected_namespaces": ()}`
+  - Applied to `LoadModelRequest` in `backend/api/routes.py`
+
+### 🔧 Version Updates
+- Backend config: APP_VERSION = "1.2.0"
+- Frontend package.json: version = "1.2.0"
+- Tauri Cargo.toml: version = "1.2.0"
+
+### 📝 Documentation
+- Added `BUGFIX_v1.2.1.md` with detailed fix instructions
+- Manual and automatic fix procedures documented
+
+---
+
+## [v1.2.0] - 2025-10-20
 
 ### ✨ Added
 - **Interactive Setup Menu**: setup.bat now shows a menu after installation with 6 quick actions
@@ -181,7 +228,9 @@ Versions follow Semantic Versioning (SemVer): MAJOR.MINOR.PATCH
 
 ## Download Links
 
-- **v1.2.0**: https://page.gensparksite.com/project_backups/ai-studio-v1.2.0-interactive-setup.tar.gz (170 KB)
+- **v1.2.2** (Latest): https://page.gensparksite.com/project_backups/ai-studio-v1.2.2-with-icons.tar.gz (524 KB) ⭐ **RECOMMENDED**
+- **v1.2.1**: https://page.gensparksite.com/project_backups/ai-studio-v1.2.1-bugfixes.tar.gz (192 KB)
+- **v1.2.0**: https://page.gensparksite.com/project_backups/ai-studio-v1.2.0-final.tar.gz (182 KB)
 - **v1.1.0**: https://page.gensparksite.com/project_backups/ai-studio-v1.1.0-auto-setup.tar.gz (150 KB)
 
 ## Future Roadmap

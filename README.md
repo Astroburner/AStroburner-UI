@@ -2,7 +2,7 @@
 
 Eine moderne Desktop-Anwendung für KI-basierte Bild- und Videogenerierung mit lokalem GPU-Support.
 
-![AI Studio](https://img.shields.io/badge/version-1.2.0-blue)
+![AI Studio](https://img.shields.io/badge/version-1.2.2-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -66,7 +66,7 @@ Eine moderne Desktop-Anwendung für KI-basierte Bild- und Videogenerierung mit l
 
 ```cmd
 # 1. Download und entpacken
-# https://page.gensparksite.com/project_backups/ai-studio-v1.2.0-interactive-setup.tar.gz
+# https://page.gensparksite.com/project_backups/ai-studio-v1.2.2-with-icons.tar.gz
 
 # 2. Automatische Installation (15-25 Min)
 cd ai-studio
