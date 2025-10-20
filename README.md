@@ -137,7 +137,7 @@ Falls du setup.bat nicht nutzen möchtest, folge dieser Anleitung:
 ### 1. Repository Klonen
 
 ```bash
-git clone https://github.com/yourusername/ai-studio.git
+git clone https://github.com/Astroburner/AStroburner-UI.git
 cd ai-studio
 ```
 
