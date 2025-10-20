@@ -31,12 +31,6 @@
     "targets": "all",
     "icon": [
       "icons/icon.png"
-    ],
-    "identifier": "com.astroburner.ai-studio",
-    "windows": {
-      "certificateThumbprint": null,
-      "digestAlgorithm": "sha256",
-      "timestampUrl": ""
-    }
+    ]
   }
 }
