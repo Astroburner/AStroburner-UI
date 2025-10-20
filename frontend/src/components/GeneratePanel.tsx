@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FiImage, FiLoader, FiUpload, FiX } from 'react-icons/fi';
+import { FiImage, FiLoader, FiUpload, FiX, FiPackage } from 'react-icons/fi';
 import { useAppStore } from '../hooks/useAppStore';
 import { apiService } from '../services/api';
 
@@ -17,6 +17,7 @@ export default function GeneratePanel() {
     denoiseStrength,
     inputImage,
     isGenerating,
+    activeLoras,
     setPrompt,
     setNegativePrompt,
     setWidth,
@@ -30,6 +31,7 @@ export default function GeneratePanel() {
     setInputImage,
     setIsGenerating,
     addGeneratedImages,
+    updateLoraWeight,
   } = useAppStore();
 
   const [error, setError] = useState<string | null>(null);
@@ -148,6 +150,63 @@ export default function GeneratePanel() {
           />
           <p className="text-xs text-gray-500">
             Niedrig (0.1-0.3): Kleine Änderungen | Mittel (0.4-0.6): Moderate Änderungen | Hoch (0.7-1.0): Starke Änderungen
+          </p>
+        </div>
+      )}
+
+      {/* Active LoRAs - CRITICAL: Only visible when LoRAs are active */}
+      {activeLoras.length > 0 && (
+        <div className="bg-primary-500/10 border-2 border-primary-500 rounded-lg p-4 space-y-3">
+          <div className="flex items-center gap-2 mb-2">
+            <FiPackage className="text-primary-400" />
+            <h3 className="text-sm font-bold text-primary-300">
+              Aktive LoRAs ({activeLoras.length}/5)
+            </h3>
+          </div>
+          
+          {activeLoras.map((lora) => (
+            <div key={lora.id} className="bg-dark-700 rounded-lg p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-medium text-white">{lora.name}</div>
+                  <div className="text-xs text-gray-400">{lora.model_type}</div>
+                </div>
+                <div className="text-sm font-medium text-primary-400">
+                  {lora.weight.toFixed(2)}
+                </div>
+              </div>
+              
+              {lora.trigger_words && (
+                <div className="text-xs text-primary-400">
+                  Trigger: {lora.trigger_words}
+                </div>
+              )}
+              
+              <div className="space-y-1">
+                <label className="text-xs text-gray-400">
+                  Stärke: {lora.weight.toFixed(2)}
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="2"
+                  step="0.05"
+                  value={lora.weight}
+                  onChange={(e) => updateLoraWeight(lora.id, Number(e.target.value))}
+                  className="w-full"
+                  disabled={isGenerating}
+                />
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>0.0</span>
+                  <span>1.0</span>
+                  <span>2.0</span>
+                </div>
+              </div>
+            </div>
+          ))}
+          
+          <p className="text-xs text-gray-500 mt-2">
+            💡 Tipp: Passe die Stärke jeder LoRA individuell an für optimale Ergebnisse
           </p>
         </div>
       )}

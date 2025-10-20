@@ -1,13 +1,18 @@
 import { useEffect, useState } from 'react';
-import { FiRefreshCw, FiDownload, FiBarChart2 } from 'react-icons/fi';
+import { FiRefreshCw, FiDownload, FiBarChart2, FiPackage } from 'react-icons/fi';
 import { useAppStore } from '../hooks/useAppStore';
 import { apiService } from '../services/api';
 import type { AppStats } from '../types';
+import LoRAAddForm from './LoRAAddForm';
+import LoRAList from './LoRAList';
+
+type SettingsTab = 'models' | 'loras';
 
 export default function SettingsPanel() {
   const { models, setModels, currentModel, setCurrentModel, setIsLoadingModel, isLoadingModel } =
     useAppStore();
   const [stats, setStats] = useState<AppStats | null>(null);
+  const [activeTab, setActiveTab] = useState<SettingsTab>('models');
 
   useEffect(() => {
     loadModels();
@@ -69,10 +74,42 @@ export default function SettingsPanel() {
     }
   };
 
+  const handleLoRAsChanged = () => {
+    // Refresh models/stats when LoRAs change
+    loadModels();
+    loadStats();
+  };
+
   return (
     <div className="h-full bg-dark-800 overflow-auto p-6">
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Statistics */}
+        {/* Tab Navigation */}
+        <div className="flex gap-2 border-b border-dark-600">
+          <button
+            onClick={() => setActiveTab('models')}
+            className={`px-6 py-3 font-medium transition-colors flex items-center gap-2 ${
+              activeTab === 'models'
+                ? 'text-primary-400 border-b-2 border-primary-500'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <FiDownload />
+            Models
+          </button>
+          <button
+            onClick={() => setActiveTab('loras')}
+            className={`px-6 py-3 font-medium transition-colors flex items-center gap-2 ${
+              activeTab === 'loras'
+                ? 'text-primary-400 border-b-2 border-primary-500'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <FiPackage />
+            LoRAs
+          </button>
+        </div>
+
+        {/* Statistics - Always visible */}
         <section className="bg-dark-700 border border-dark-600 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <FiBarChart2 className="text-primary-500" />
@@ -111,7 +148,10 @@ export default function SettingsPanel() {
           )}
         </section>
 
-        {/* Models */}
+        {/* Models Tab Content */}
+        {activeTab === 'models' && (
+          <>
+            {/* Models */}
         <section className="bg-dark-700 border border-dark-600 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -203,7 +243,7 @@ export default function SettingsPanel() {
           <div className="text-gray-300 space-y-2 text-sm">
             <div className="flex justify-between">
               <span>Version:</span>
-              <span className="font-medium">1.0.0</span>
+              <span className="font-medium">1.6.0</span>
             </div>
             <div className="flex justify-between">
               <span>Build:</span>
@@ -211,6 +251,16 @@ export default function SettingsPanel() {
             </div>
           </div>
         </section>
+          </>
+        )}
+
+        {/* LoRAs Tab Content */}
+        {activeTab === 'loras' && (
+          <>
+            <LoRAAddForm onSuccess={handleLoRAsChanged} />
+            <LoRAList onLoRAsChanged={handleLoRAsChanged} />
+          </>
+        )}
       </div>
     </div>
   );

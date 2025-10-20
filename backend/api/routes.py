@@ -109,6 +109,15 @@ async def generate_image(request: GenerateImageRequest, background_tasks: Backgr
             if not load_result["success"]:
                 raise HTTPException(status_code=400, detail="Failed to load model")
         
+        # Load active LoRAs into pipeline
+        active_loras = await db.get_active_loras()
+        if active_loras:
+            logger.info(f"Loading {len(active_loras)} active LoRAs into pipeline...")
+            lora_result = model_manager.load_loras(active_loras)
+            if not lora_result["success"]:
+                logger.warning(f"Failed to load LoRAs: {lora_result.get('error')}")
+                # Don't fail generation, just warn
+        
         # Generate images (txt2img or img2img)
         if request.input_image:
             # Image-to-Image generation

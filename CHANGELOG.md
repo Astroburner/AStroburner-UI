@@ -2,6 +2,122 @@
 
 All notable changes to AI Studio will be documented in this file.
 
+## [v1.6.0] - 2025-10-20
+
+### 🎨 Major Feature - Complete LoRA Management System
+
+#### ✨ New Features
+- **LoRA Management UI**:
+  - New "LoRAs" tab in Settings alongside Models tab
+  - Add LoRAs from local PC (.safetensors files)
+  - File picker with Tauri dialog for easy file selection
+  - Support for 11 model types: SD1.5, SDXL, SDXL-Turbo, Pony, Illustrious, Flux-Dev, Flux-Kontext, Wan2.1, Wan2.2, Qwen, Qwen-image-edit
+  - LoRA list with activate/deactivate functionality
+  - Delete LoRAs from database (files stay in place)
+  - "Deactivate All" quick action button
+
+- **Multi-LoRA Support** (CRITICAL):
+  - **Up to 5 LoRAs active simultaneously**
+  - Individual strength control per LoRA (0.0-2.0)
+  - Backend enforces max 5 active LoRAs limit
+  - Frontend UI shows active count (X/5)
+  - Real-time strength adjustment during generation setup
+
+- **Generate Panel Integration** (USER REQUIREMENT):
+  - Active LoRAs display section (only visible when LoRAs active)
+  - **Individual strength sliders per active LoRA** (0.0-2.0)
+  - Shows LoRA name, model type, and trigger words
+  - Visual indicator with primary color theme
+  - Strength changes persist in store for next generation
+
+- **LoRA Metadata**:
+  - Name, file path, model type
+  - Optional trigger words (activation keywords)
+  - Optional description
+  - Adjustable default weight (0.0-2.0)
+  - Created timestamp
+  - Active/inactive status
+
+#### 🔧 Backend Implementation
+- **Database Schema** (`models/database.py`):
+  - New `loras` table with complete metadata
+  - CRUD operations: add, get, get_active, update, delete, deactivate_all
+  - Max 5 active LoRAs enforced at database level
+  - File path validation and duplicate prevention
+
+- **API Endpoints** (`api/routes.py`):
+  - `POST /loras` - Add new LoRA
+  - `GET /loras` - List all (optional model_type filter)
+  - `GET /loras/active` - Get active LoRAs only
+  - `PATCH /loras/{id}` - Update LoRA details
+  - `PATCH /loras/{id}/activate` - Activate/deactivate (enforces max 5)
+  - `DELETE /loras/{id}` - Delete LoRA
+  - `POST /loras/deactivate-all` - Deactivate all LoRAs
+
+- **Model Manager** (`core/model_manager.py`):
+  - `load_loras()` - Load up to 5 LoRAs into pipeline
+  - Multi-LoRA support using adapter system
+  - Per-LoRA weight control
+  - Works with both txt2img and img2img pipelines
+  - `unload_all_loras()` - Clean slate for new LoRA combinations
+  - `get_loaded_loras()` - Track currently loaded LoRAs
+  - **Auto-loading**: Generation automatically loads active LoRAs from database
+
+#### 🎯 Frontend Implementation
+- **State Management** (`hooks/useAppStore.ts`):
+  - `activeLoras` state array
+  - `setActiveLoras()` - Update active LoRAs list
+  - `updateLoraWeight()` - Adjust individual LoRA strength
+
+- **Components**:
+  - `LoRAAddForm.tsx` - Complete add form with file picker
+  - `LoRAList.tsx` - LoRA management with activate/deactivate
+  - `SettingsPanel.tsx` - Tab system (Models | LoRAs)
+  - `GeneratePanel.tsx` - Active LoRAs display with strength sliders
+
+- **API Integration** (`services/api.ts`):
+  - Complete LoRA CRUD methods
+  - Type-safe with TypeScript interfaces
+  - Error handling for max limit violations
+
+#### 📝 Technical Details
+- **File Management**: Files stay in original location (no copying)
+- **Disk Space Optimization**: Only stores metadata in database
+- **Type Safety**: Complete TypeScript type definitions
+- **Error Handling**: User-friendly messages for max limit violations
+- **Performance**: Lazy loading of LoRAs into GPU memory
+- **Compatibility**: Works with all supported model types
+
+#### 🎨 UI/UX Highlights
+- Tab-based Settings navigation
+- Visual feedback for active LoRAs (primary color theme)
+- Compact LoRA cards with all essential info
+- Quick actions (Activate/Deactivate/Delete)
+- Real-time weight adjustment
+- Responsive design
+- Conditional visibility (only show when relevant)
+
+### 🔧 Version Updates
+- Backend: config.py APP_VERSION = "1.6.0"
+- Frontend: package.json version = "1.6.0"
+- Tauri: tauri.conf.json version = "1.6.0"
+- Settings Panel: Info section version = "1.6.0"
+
+### 📊 Complete Feature Summary
+**What User Can Do:**
+1. ✅ Add LoRAs from local .safetensors files
+2. ✅ Select from 11 supported model types
+3. ✅ Add trigger words and description
+4. ✅ Set default weight (0.0-2.0)
+5. ✅ Activate up to 5 LoRAs simultaneously
+6. ✅ Adjust individual strength per active LoRA
+7. ✅ See active LoRAs in Generate Panel
+8. ✅ Generate with multiple LoRAs at once
+9. ✅ Deactivate individual or all LoRAs
+10. ✅ Delete LoRAs from management (files stay in place)
+
+---
+
 ## [v1.5.0] - 2025-10-20
 
 ### 🎨 Major UI/UX Improvements - History Panel Redesign

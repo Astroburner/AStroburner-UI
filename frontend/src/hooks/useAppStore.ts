@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GeneratedImage, ModelInfo, GPUInfo } from '../types';
+import type { GeneratedImage, ModelInfo, GPUInfo, LoRA } from '../types';
 
 interface AppState {
   // Generation state
@@ -27,6 +27,9 @@ interface AppState {
   
   // GPU
   gpuInfo: GPUInfo | null;
+  
+  // LoRAs
+  activeLoras: LoRA[];
   
   // UI state
   showSettings: boolean;
@@ -56,6 +59,9 @@ interface AppState {
   setIsLoadingModel: (value: boolean) => void;
   
   setGpuInfo: (info: GPUInfo) => void;
+  
+  setActiveLoras: (loras: LoRA[]) => void;
+  updateLoraWeight: (loraId: number, weight: number) => void;
   
   setShowSettings: (value: boolean) => void;
   setShowHistory: (value: boolean) => void;
@@ -88,6 +94,8 @@ export const useAppStore = create<AppState>((set) => ({
   
   gpuInfo: null,
   
+  activeLoras: [],
+  
   showSettings: false,
   showHistory: false,
   selectedTab: 'generate',
@@ -117,6 +125,13 @@ export const useAppStore = create<AppState>((set) => ({
   setIsLoadingModel: (value) => set({ isLoadingModel: value }),
   
   setGpuInfo: (info) => set({ gpuInfo: info }),
+  
+  setActiveLoras: (loras) => set({ activeLoras: loras }),
+  updateLoraWeight: (loraId, weight) => set((state) => ({
+    activeLoras: state.activeLoras.map(lora =>
+      lora.id === loraId ? { ...lora, weight } : lora
+    )
+  })),
   
   setShowSettings: (value) => set({ showSettings: value }),
   setShowHistory: (value) => set({ showHistory: value }),

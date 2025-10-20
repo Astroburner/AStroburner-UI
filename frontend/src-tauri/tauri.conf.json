@@ -1,6 +1,6 @@
 {
   "productName": "AI Studio",
-  "version": "1.2.0",
+  "version": "1.6.0",
   "identifier": "com.astroburner.ai-studio",
   "build": {
     "beforeDevCommand": "npm run dev",
