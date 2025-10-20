@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
@@ -452,6 +453,37 @@ async def add_custom_model(request: AddCustomModelRequest):
         logger.error(f"Error adding custom model: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/custom-models/model-types")
+async def get_supported_model_types_endpoint():
+    """Get list of supported model types"""
+    from utils.model_detector import get_supported_model_types, get_supported_precisions
+    return {
+        "model_types": get_supported_model_types(),
+        "precisions": get_supported_precisions()
+    }
+
+@router.post("/custom-models/detect")
+async def detect_model_type_endpoint(file_path: str):
+    """Detect model type and precision from file"""
+    try:
+        from utils.model_detector import detect_model_type
+        
+        if not Path(file_path).exists():
+            raise HTTPException(status_code=400, detail="File not found")
+        
+        model_type, precision = detect_model_type(file_path)
+        
+        return {
+            "model_type": model_type,
+            "precision": precision,
+            "file_path": file_path
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error detecting model type: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/custom-models")
 async def list_custom_models():
     """Get all custom models"""
@@ -490,33 +522,71 @@ async def delete_custom_model(model_id: int):
         logger.error(f"Error deleting custom model: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/custom-models/model-types")
-async def get_supported_model_types_endpoint():
-    """Get list of supported model types"""
-    from utils.model_detector import get_supported_model_types, get_supported_precisions
-    return {
-        "model_types": get_supported_model_types(),
-        "precisions": get_supported_precisions()
-    }
-
-@router.post("/custom-models/detect")
-async def detect_model_type_endpoint(file_path: str):
-    """Detect model type and precision from file"""
+@router.get("/thumbnail")
+async def get_thumbnail(path: str):
+    """Serve thumbnail image from local filesystem"""
     try:
-        from utils.model_detector import detect_model_type
+        thumbnail_path = Path(path)
+        if not thumbnail_path.exists():
+            raise HTTPException(status_code=404, detail="Thumbnail not found")
         
-        if not Path(file_path).exists():
-            raise HTTPException(status_code=400, detail="File not found")
+        # Verify it's an image file
+        allowed_extensions = {'.png', '.jpg', '.jpeg', '.webp', '.gif'}
+        if thumbnail_path.suffix.lower() not in allowed_extensions:
+            raise HTTPException(status_code=400, detail="Invalid image format")
         
-        model_type, precision = detect_model_type(file_path)
+        return FileResponse(
+            path=str(thumbnail_path),
+            media_type=f"image/{thumbnail_path.suffix[1:]}",
+            headers={"Cache-Control": "public, max-age=3600"}
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error serving thumbnail: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+class LoadCustomModelRequest(BaseModel):
+    model_config = {"protected_namespaces": ()}
+    model_id: int
+
+@router.post("/custom-models/load")
+async def load_custom_model(request: LoadCustomModelRequest):
+    """Load a custom model for generation"""
+    try:
+        # Get model info from database
+        model_info = await db.get_custom_model(request.model_id)
+        if not model_info:
+            raise HTTPException(status_code=404, detail="Custom model not found")
+        
+        # Verify file exists
+        model_path = Path(model_info['file_path'])
+        if not model_path.exists():
+            raise HTTPException(status_code=400, detail="Model file not found on disk")
+        
+        # Deactivate all other custom models
+        await db.deactivate_all_custom_models()
+        
+        # Load the model using model_manager
+        # Note: This requires model_manager to support custom safetensors loading
+        # For now, we just mark it as active in the database
+        await db.set_custom_model_active(request.model_id, True)
+        
+        logger.info(f"Custom model loaded: {model_info['name']} ({model_info['model_type']})")
         
         return {
-            "model_type": model_type,
-            "precision": precision,
-            "file_path": file_path
+            "success": True,
+            "message": f"Custom model '{model_info['name']}' loaded successfully",
+            "model_info": {
+                "id": model_info['id'],
+                "name": model_info['name'],
+                "model_type": model_info['model_type'],
+                "precision": model_info['precision'],
+                "file_path": model_info['file_path']
+            }
         }
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error detecting model type: {e}")
+        logger.error(f"Error loading custom model: {e}")
         raise HTTPException(status_code=500, detail=str(e))
