@@ -164,37 +164,17 @@ REM Upgrade pip
 echo Upgrading pip...
 python -m pip install --upgrade pip
 
-REM Install base requirements
-echo.
-echo Installing Python dependencies...
-echo This may take a few minutes...
-
-if not exist "requirements.txt" (
-    echo [ERROR] requirements.txt not found!
-    cd ..
-    pause
-    goto :end_menu
-)
-
-pip install -r requirements.txt
-if %errorlevel% neq 0 (
-    echo [ERROR] Failed to install Python dependencies!
-    echo.
-    echo Check the error messages above.
-    cd ..
-    pause
-    goto :end_menu
-)
-
-echo [OK] Python dependencies installed
-echo.
-
 REM ========================================
-REM 3. PYTORCH INSTALLATION
+REM 3. PYTORCH INSTALLATION (BEFORE REQUIREMENTS!)
 REM ========================================
+REM CRITICAL: PyTorch MUST be installed BEFORE requirements.txt
+REM otherwise requirements.txt installs CPU-only PyTorch!
 
 echo.
 echo [3/6] Installing PyTorch with CUDA support...
+echo.
+echo IMPORTANT: Installing PyTorch FIRST (before other dependencies)
+echo This ensures we get the correct CUDA version!
 echo.
 
 REM Detect GPU and auto-suggest CUDA version
@@ -264,17 +244,44 @@ if %errorlevel% neq 0 (
     if "%CUDA_CHOICE%"=="1" goto :install_pytorch_cu128
 
     :install_pytorch_cu128
+    echo.
     echo Installing PyTorch for CUDA 12.8...
+    echo.
+    echo [1/2] Uninstalling any existing PyTorch (CPU version)...
+    pip uninstall torch torchvision torchaudio -y >nul 2>&1
+    echo [OK] Old PyTorch removed
+    echo.
+    echo [2/2] Installing PyTorch with CUDA 12.8...
+    echo This will download ~2-3 GB, please wait...
+    echo.
     pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
     goto :verify_pytorch
 
     :install_pytorch_cu121
+    echo.
     echo Installing PyTorch for CUDA 12.1...
+    echo.
+    echo [1/2] Uninstalling any existing PyTorch (CPU version)...
+    pip uninstall torch torchvision torchaudio -y >nul 2>&1
+    echo [OK] Old PyTorch removed
+    echo.
+    echo [2/2] Installing PyTorch with CUDA 12.1...
+    echo This will download ~2-3 GB, please wait...
+    echo.
     pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
     goto :verify_pytorch
 
     :install_pytorch_cu118
+    echo.
     echo Installing PyTorch for CUDA 11.8...
+    echo.
+    echo [1/2] Uninstalling any existing PyTorch (CPU version)...
+    pip uninstall torch torchvision torchaudio -y >nul 2>&1
+    echo [OK] Old PyTorch removed
+    echo.
+    echo [2/2] Installing PyTorch with CUDA 11.8...
+    echo This will download ~2-3 GB, please wait...
+    echo.
     pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
     goto :verify_pytorch
 
@@ -317,7 +324,7 @@ if %errorlevel% neq 0 (
     
     REM Check if CUDA is actually enabled
     python -c "import torch; import sys; sys.exit(0 if torch.cuda.is_available() else 1)" 2>nul
-    if %errorlevel% neq 0 (
+    if errorlevel 1 (
         echo.
         echo ========================================
         echo    WARNING: CUDA NOT DETECTED!
@@ -363,7 +370,7 @@ if %errorlevel% neq 0 (
             python -c "import torch; print('=' * 50); print('PyTorch Version:', torch.__version__); print('CUDA Available:', torch.cuda.is_available()); print('CUDA Version:', torch.version.cuda if torch.cuda.is_available() else 'N/A'); print('GPU Count:', torch.cuda.device_count() if torch.cuda.is_available() else 0); print('GPU Name:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'N/A'); print('GPU Memory:', f'{torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB' if torch.cuda.is_available() else 'N/A'); print('Compute Capability:', f'{torch.cuda.get_device_capability(0)[0]}.{torch.cuda.get_device_capability(0)[1]}' if torch.cuda.is_available() else 'N/A'); print('=' * 50)"
             
             python -c "import torch; import sys; sys.exit(0 if torch.cuda.is_available() else 1)" 2>nul
-            if %errorlevel% equ 0 (
+            if not errorlevel 1 (
                 echo.
                 echo ========================================
                 echo    CUDA FIX SUCCESSFUL!
@@ -404,6 +411,36 @@ if %errorlevel% neq 0 (
 )
 
 :skip_pytorch
+
+REM ========================================
+REM NOW INSTALL OTHER DEPENDENCIES (after PyTorch)
+REM ========================================
+
+echo.
+echo Installing remaining Python dependencies...
+echo This may take a few minutes...
+echo.
+
+if not exist "requirements.txt" (
+    echo [ERROR] requirements.txt not found!
+    cd ..
+    pause
+    goto :end_menu
+)
+
+REM Install other dependencies (PyTorch already installed, will be skipped)
+pip install -r requirements.txt
+if %errorlevel% neq 0 (
+    echo [ERROR] Failed to install Python dependencies!
+    echo.
+    echo Check the error messages above.
+    cd ..
+    pause
+    goto :end_menu
+)
+
+echo [OK] All Python dependencies installed
+
 cd ..
 
 echo.
