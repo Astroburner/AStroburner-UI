@@ -2,13 +2,22 @@
 
 Eine moderne Desktop-Anwendung für KI-basierte Bild- und Videogenerierung mit lokalem GPU-Support.
 
-![Astroburner-UI](https://img.shields.io/badge/version-1.8.0-blue)
+![Astroburner-UI](https://img.shields.io/badge/version-1.9.0-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## 🎯 Features
 
-### v1.8.0 Major Update (NEU!)
+### v1.9.0 Major Update (NEU!)
+- 🎨 **Custom Model Integration** - Eigene .safetensors Modelle hochladen
+- 🤖 **Automatische Typ-Erkennung** - Erkennt SD1.5, SDXL, FLUX automatisch aus Tensor-Struktur
+- 🎯 **Manuelle Klassifizierung** - 14 Model-Typen manuell zuordnen (SD1.5, SDXL, FLUX, etc.)
+- 🔢 **Präzisions-Support** - FP32, FP16, BF16, FP8 Safetensors werden unterstützt
+- 🖼️ **Optional Thumbnail** - Vorschaubilder für Custom Models hinzufügen
+- 📂 **Custom Model Management** - Liste, Löschen, Aktivieren von Custom Models
+- 🔍 **Metadata-Analyse** - Automatische Analyse von Tensor-Keys und Model-Metadata
+
+### v1.8.0 Features (Previous Release)
 - 🎨 **History Copy-Funktion** - Einstellungen direkt aus History übernehmen
 - 💚 **Model Download Indicator** - Grünes Licht für heruntergeladene Modelle
 - ⚡ **LoRA Strength -1 bis +2** - Negativer Range für inverse LoRAs
@@ -305,7 +314,7 @@ Cache Location: `models/` Ordner
 
 ## 🔧 API Dokumentation
 
-Backend API läuft auf: `http://127.0.0.1:8000`
+Backend API läuft auf: `http://127.0.0.1.9.00`
 
 ### Endpoints
 
@@ -318,7 +327,7 @@ Backend API läuft auf: `http://127.0.0.1:8000`
 - `GET /api/history` - Generation History
 - `GET /api/stats` - Statistiken
 
-API Docs: http://127.0.0.1:8000/docs (Swagger UI)
+API Docs: http://127.0.0.1.9.00/docs (Swagger UI)
 
 ## 📊 Performance
 

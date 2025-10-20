@@ -5,8 +5,10 @@ import { apiService } from '../services/api';
 import type { AppStats } from '../types';
 import LoRAAddForm from './LoRAAddForm';
 import LoRAList from './LoRAList';
+import CustomModelAddForm from './CustomModelAddForm';
+import CustomModelList from './CustomModelList';
 
-type SettingsTab = 'models' | 'loras';
+type SettingsTab = 'models' | 'loras' | 'custom-models';
 
 export default function SettingsPanel() {
   const { models, setModels, currentModel, setCurrentModel, setIsLoadingModel, isLoadingModel } =
@@ -106,6 +108,17 @@ export default function SettingsPanel() {
           >
             <FiPackage />
             LoRAs
+          </button>
+          <button
+            onClick={() => setActiveTab('custom-models')}
+            className={`px-6 py-3 font-medium transition-colors flex items-center gap-2 ${
+              activeTab === 'custom-models'
+                ? 'text-primary-400 border-b-2 border-primary-500'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <FiDownload />
+            Custom Models
           </button>
         </div>
 
@@ -257,7 +270,7 @@ export default function SettingsPanel() {
           <div className="text-gray-300 space-y-2 text-sm">
             <div className="flex justify-between">
               <span>Version:</span>
-              <span className="font-medium">1.8.0</span>
+              <span className="font-medium">1.9.0</span>
             </div>
             <div className="flex justify-between">
               <span>Build:</span>
@@ -273,6 +286,14 @@ export default function SettingsPanel() {
           <>
             <LoRAAddForm onSuccess={handleLoRAsChanged} />
             <LoRAList onLoRAsChanged={handleLoRAsChanged} />
+          </>
+        )}
+
+        {/* Custom Models Tab Content */}
+        {activeTab === 'custom-models' && (
+          <>
+            <CustomModelAddForm onSuccess={loadModels} />
+            <CustomModelList onModelsChanged={loadModels} />
           </>
         )}
       </div>

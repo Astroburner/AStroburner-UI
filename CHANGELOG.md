@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.0] - 2025-01-20
+
+### 🎉 Features (Custom Model Integration)
+- **Custom Model Upload** - Eigene .safetensors Modelle hinzufügen
+- **Automatische Typ-Erkennung** - Erkennt SD1.5, SDXL, FLUX automatisch
+- **Präzisions-Support** - FP32, FP16, BF16, FP8 Safetensors unterstützt
+- **Model Type Selection** - Manuelle Zuordnung möglich (SD1.5, SDXL, Pony, etc.)
+- **Optional Thumbnail** - Vorschaubilder für Custom Models
+- **Custom Model Management** - Liste, Löschen, Aktivieren von Custom Models
+
+### 🔧 Backend
+- Database: `custom_models` Tabelle für Custom Models
+- API: `/api/custom-models` Endpoints (POST, GET, DELETE)
+- API: `/api/custom-models/detect` - Auto-Detection von Model Type
+- Utility: `model_detector.py` - Erkennt Model Typ aus Safetensors Metadata
+- Support: Alle Präzisionen (FP32/FP16/BF16/FP8)
+
+### 🎨 Frontend
+- Component: `CustomModelAddForm` - Upload UI mit Auto-Detection
+- Component: `CustomModelList` - Verwaltung der Custom Models
+- Settings: Neuer "Custom Models" Tab
+- File Picker: .safetensors + Thumbnail (PNG/JPG/WEBP)
+
+### 📚 Documentation
+- CHANGELOG.md: v1.9.0 dokumentiert
+- README.md: Custom Models Feature hinzugefügt
+
+---
+
 ## [1.8.0] - 2025-01-20
 
 ### 🎉 Features (Major UI/UX Update)
