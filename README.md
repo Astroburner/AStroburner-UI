@@ -10,7 +10,7 @@ Eine moderne Desktop-Anwendung für KI-basierte Bild- und Videogenerierung mit l
 
 **Backup enthält keine `node_modules` um Dateigröße zu reduzieren!**
 
-### Quick-Fix (EMPFOHLEN):
+### Quick-Fix (Sollte CUDA nicht erkannt werden):
 ```bash
 quick-fix-dependencies.bat
 ```
