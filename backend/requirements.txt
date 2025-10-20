@@ -1,3 +1,11 @@
+# ============================================
+# AI Studio Backend Dependencies
+# Version: 1.6.0
+# ============================================
+
+# ============================================
+# Core Web Framework
+# ============================================
 fastapi==0.115.0
 uvicorn[standard]==0.32.0
 python-multipart==0.0.17
@@ -5,33 +13,96 @@ websockets==13.1
 pydantic==2.9.2
 pydantic-settings==2.6.0
 
-# AI/ML
-# NOTE: Install PyTorch separately based on your CUDA version:
-# CUDA 12.8 (RTX 5090, RTX 50-series): pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
-# CUDA 12.1 (RTX 4090, RTX 40-series): pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-# CUDA 11.8 (RTX 3090, RTX 30-series): pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
-# CPU only: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-# Apple Silicon (M1/M2/M3): pip install torch torchvision (MPS support included)
+# ============================================
+# AI/ML Framework - PyTorch
+# ============================================
+# NOTE: PyTorch installation depends on your GPU/CUDA version.
+# The versions below are for CUDA 12.8 (RTX 5090).
+# 
+# For other CUDA versions, install separately:
+# 
+# CUDA 12.8 (RTX 5090, RTX 50-series):
+#   pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu128
+# 
+# CUDA 12.1 (RTX 4090, RTX 40-series):
+#   pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121
+# 
+# CUDA 11.8 (RTX 3090, RTX 30-series):
+#   pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu118
+# 
+# CPU only:
+#   pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cpu
+# 
+# Apple Silicon (M1/M2/M3):
+#   pip install torch==2.5.1 torchvision==0.20.1 (MPS support included)
+#
 torch>=2.5.0
 torchvision>=0.20.0
+
+# ============================================
+# Diffusers & Model Support
+# ============================================
 diffusers==0.31.0
 transformers==4.46.3
 accelerate==1.1.1
 safetensors==0.4.5
 omegaconf==2.3.0
 
+# Required for optimized attention (xFormers)
+# NOTE: xformers requires matching PyTorch version
+# For PyTorch 2.5.1 + CUDA 12.8:
+#   pip install xformers==0.0.28.post2
+# xformers will be installed if compatible version available
+
+# ============================================
 # Image Processing
+# ============================================
 Pillow==11.0.0
 opencv-python==4.10.0.84
 numpy==2.1.3
 
-# GPU Monitoring
+# ============================================
+# GPU Monitoring (NVIDIA only)
+# ============================================
+# NOTE: These are for NVIDIA GPUs only
+# For AMD/Intel GPUs or CPU-only, these can be skipped
 pynvml==11.5.3
 gputil==1.4.0
 
+# ============================================
 # Database
+# ============================================
 aiosqlite==0.20.0
 
-# Utils
+# ============================================
+# Utilities
+# ============================================
 python-dotenv==1.0.1
 aiofiles==24.1.0
+
+# ============================================
+# Development & Debugging (Optional)
+# ============================================
+# Uncomment these for development:
+# pytest==8.3.3
+# pytest-asyncio==0.24.0
+# black==24.10.0
+# flake8==7.1.1
+# mypy==1.13.0
+
+# ============================================
+# Additional Model Support (Optional)
+# ============================================
+# Uncomment if you need these:
+# compel==2.0.3              # Advanced prompt weighting
+# controlnet-aux==0.0.9       # ControlNet preprocessors
+# invisible-watermark==0.2.0  # Watermark support
+# sentencepiece==0.2.0        # For some tokenizers
+# protobuf==5.28.3            # For some models
+
+# ============================================
+# Performance Optimization (Optional)
+# ============================================
+# Uncomment for better performance:
+# onnxruntime-gpu==1.19.2     # ONNX runtime for optimized inference
+# triton==3.0.0               # Triton kernels for faster operations
