@@ -2,7 +2,7 @@
 
 Eine moderne Desktop-Anwendung für KI-basierte Bild- und Videogenerierung mit lokalem GPU-Support.
 
-![AI Studio](https://img.shields.io/badge/version-1.0.0-blue)
+![AI Studio](https://img.shields.io/badge/version-1.2.0-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -58,7 +58,36 @@ Eine moderne Desktop-Anwendung für KI-basierte Bild- und Videogenerierung mit l
 - Rust 1.70+ (für Tauri)
 - Git
 
-## 🚀 Installation & Setup
+## 🚀 Schnellstart (Windows)
+
+### ⚡ Automatische Installation (Empfohlen!)
+
+**NEU in v1.2.0**: Ein einziger Befehl installiert alles automatisch!
+
+```cmd
+# 1. Download und entpacken
+# https://page.gensparksite.com/project_backups/ai-studio-v1.2.0-interactive-setup.tar.gz
+
+# 2. Automatische Installation (15-25 Min)
+cd ai-studio
+setup.bat
+
+# 3. Wähle deine GPU während der Installation:
+#    Option 1: RTX 5090 / RTX 50-series (CUDA 12.8)
+#    Option 2: RTX 4090 / RTX 40-series (CUDA 12.1)
+#    Option 3: RTX 3090 / RTX 30-series (CUDA 11.8)
+#    Option 4: CPU only
+```
+
+**Das war's! 🎉** Nach der Installation zeigt setup.bat ein interaktives Menü mit Quick Actions.
+
+**Siehe:** [SETUP_BAT_README.md](SETUP_BAT_README.md) für Details
+
+---
+
+### 📖 Manuelle Installation
+
+Falls du setup.bat nicht nutzen möchtest, folge dieser Anleitung:
 
 ### 1. Repository Klonen
 
