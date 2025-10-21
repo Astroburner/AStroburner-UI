@@ -1,6 +1,6 @@
 [package]
 name = "ai-studio"
-version = "1.9.9"
+version = "1.9.9.1"
 description = "Desktop AI Image & Video Generation"
 authors = ["Astroburner"]
 edition = "2021"

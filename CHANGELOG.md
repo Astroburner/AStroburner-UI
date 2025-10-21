@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.9.1] - 2025-10-21
+
+### 🔥 Critical Dependency Fix - PEFT Library Missing
+
+**Problem:** LoRA loading still failed with "PEFT backend is required for this method" error despite v1.9.9 code fix.
+
+**Root Cause:** PEFT library was completely missing from `requirements.txt`!
+
+**Why This Matters:**
+- Even `fuse_lora()` and `unfuse_lora()` require PEFT internally
+- Diffusers' LoRA implementation uses `peft.tuners.BaseTunerLayer` under the hood
+- Without PEFT installed, ALL LoRA methods fail (including our v1.9.9 "PEFT-free" approach)
+
+**Fixed:**
+- ✅ Added `peft>=0.13.0` to `backend/requirements.txt`
+- ✅ Updated installation documentation
+- ✅ Version bumped to 1.9.9.1 across all files
+
+**Installation Required:**
+```bash
+cd backend
+pip install peft>=0.13.0
+# Or reinstall all dependencies:
+pip install -r requirements.txt
+```
+
+**Files Changed:**
+- `backend/requirements.txt`: Added PEFT dependency
+- `backend/config.py`: Version 1.9.9.1
+- `frontend/package.json`: Version 1.9.9.1
+- `frontend/src-tauri/Cargo.toml`: Version 1.9.9.1
+- `frontend/src-tauri/tauri.conf.json`: Version 1.9.9.1
+- `frontend/src/components/SettingsPanel.tsx`: Version 1.9.9.1
+- `README.md`: Updated with v1.9.9.1 section
+
+**Compatible Versions:**
+```
+diffusers==0.31.0
+transformers==4.46.3
+accelerate==1.1.1
+peft>=0.13.0          # ← CRITICAL: Previously missing!
+safetensors==0.4.5
+```
+
+---
+
 ## [1.9.9] - 2025-10-21
 
 ### 🔥 Critical LoRA Bugfix (Complete PEFT-Free Implementation)
