@@ -34,7 +34,7 @@ class GenerateImageRequest(BaseModel):
     denoise_strength: Optional[float] = Field(default=0.75, ge=0.0, le=1.0)
     input_image: Optional[str] = None
     sampler: Optional[str] = None
-    scheduler: Optional[str] = None
+    clip_skip: int = Field(default=0, ge=0, le=5)
 
 class LoadModelRequest(BaseModel):
     model_config = {"protected_namespaces": ()}
@@ -152,7 +152,8 @@ async def generate_image(request: GenerateImageRequest, background_tasks: Backgr
                 guidance_scale=request.guidance_scale,
                 num_images=request.num_images,
                 seed=request.seed,
-                scheduler=request.scheduler
+                scheduler=request.scheduler,
+                clip_skip=request.clip_skip
             )
         
         if not result["success"]:

@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+import warnings
 
 # Add backend directory to Python path
 backend_dir = Path(__file__).parent
@@ -15,12 +16,24 @@ from contextlib import asynccontextmanager
 from api.routes import router, db
 from config import settings
 
-# Configure logging
+# Suppress warnings for cleaner logs
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+# Configure logging - suppress non-critical logs
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Suppress verbose library logs
+logging.getLogger("diffusers").setLevel(logging.ERROR)
+logging.getLogger("transformers").setLevel(logging.ERROR)
+logging.getLogger("peft").setLevel(logging.ERROR)
+logging.getLogger("torch").setLevel(logging.ERROR)
+logging.getLogger("PIL").setLevel(logging.ERROR)
 
 # Lifespan context manager
 @asynccontextmanager

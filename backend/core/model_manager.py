@@ -372,12 +372,24 @@ class ModelManager:
         guidance_scale: float = 7.5,
         num_images: int = 1,
         seed: Optional[int] = None,
-        scheduler: Optional[str] = None
+        scheduler: Optional[str] = None,
+        clip_skip: int = 0
     ) -> Dict:
         """Generate images"""
         try:
             if self.pipeline is None:
                 return {"success": False, "error": "No model loaded"}
+            
+            # Apply CLIP Skip if specified
+            if clip_skip > 0 and hasattr(self.pipeline, 'text_encoder'):
+                original_layers = None
+                try:
+                    if hasattr(self.pipeline.text_encoder.config, 'num_hidden_layers'):
+                        original_layers = self.pipeline.text_encoder.config.num_hidden_layers
+                        self.pipeline.text_encoder.config.num_hidden_layers = original_layers - clip_skip
+                        logger.info(f"CLIP Skip applied: {clip_skip} (using {original_layers - clip_skip}/{original_layers} layers)")
+                except Exception as e:
+                    logger.warning(f"Could not apply CLIP skip: {e}")
             
             # Set scheduler if specified
             self._set_scheduler(self.pipeline, scheduler)
@@ -400,6 +412,13 @@ class ModelManager:
                 num_images_per_prompt=num_images,
                 generator=generator
             )
+            
+            # Restore original CLIP layers
+            if clip_skip > 0 and original_layers is not None:
+                try:
+                    self.pipeline.text_encoder.config.num_hidden_layers = original_layers
+                except:
+                    pass
             
             return {
                 "success": True,

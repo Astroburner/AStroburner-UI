@@ -20,6 +20,7 @@ interface AppState {
   denoiseStrength: number;
   inputImage: string | null;
   nsfw: boolean;
+  clipSkip: number;
   
   // Models
   models: ModelInfo[];
@@ -61,6 +62,7 @@ interface AppState {
   setDenoiseStrength: (strength: number) => void;
   setInputImage: (image: string | null) => void;
   setNsfw: (nsfw: boolean) => void;
+  setClipSkip: (clipSkip: number) => void;
   
   loadGenerationParams: (params: {
     prompt: string;
@@ -110,6 +112,7 @@ export const useAppStore = create<AppState>((set) => ({
   denoiseStrength: 0.75,
   inputImage: null,
   nsfw: true,
+  clipSkip: 0,
   
   models: [],
   currentModel: null,
@@ -145,6 +148,7 @@ export const useAppStore = create<AppState>((set) => ({
   setDenoiseStrength: (strength) => set({ denoiseStrength: strength }),
   setInputImage: (image) => set({ inputImage: image }),
   setNsfw: (nsfw) => set({ nsfw }),
+  setClipSkip: (clipSkip) => set({ clipSkip }),
   
   loadGenerationParams: (params) => set({
     prompt: params.prompt,
@@ -187,5 +191,6 @@ export const useAppStore = create<AppState>((set) => ({
     scheduler: 'DPMSolverMultistep',
     denoiseStrength: 0.75,
     inputImage: null,
+    clipSkip: 0,
   }),
 }));

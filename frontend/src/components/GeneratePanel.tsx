@@ -19,6 +19,7 @@ export default function GeneratePanel() {
     isGenerating,
     activeLoras,
     nsfw,
+    clipSkip,
     setPrompt,
     setNegativePrompt,
     setWidth,
@@ -32,6 +33,7 @@ export default function GeneratePanel() {
     setInputImage,
     setIsGenerating,
     setNsfw,
+    setClipSkip,
     addGeneratedImages,
     updateLoraWeight,
   } = useAppStore();
@@ -357,7 +359,7 @@ export default function GeneratePanel() {
         </div>
 
         {/* Scheduler (ersetzt Sampler + Scheduler) */}
-        <div className="space-y-2 col-span-2">
+        <div className="space-y-2">
           <label className="text-sm font-medium text-gray-300">
             Scheduler (Denoising Algorithmus)
           </label>
@@ -388,6 +390,30 @@ export default function GeneratePanel() {
               <option value="KDPM2AncestralDiscrete">KDPM2 Ancestral</option>
             </optgroup>
           </select>
+        </div>
+
+        {/* CLIP Skip */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-300">
+            CLIP Skip: {clipSkip === 0 ? 'Standard' : clipSkip}
+          </label>
+          <select
+            value={clipSkip}
+            onChange={(e) => setClipSkip(Number(e.target.value))}
+            className="w-full px-4 py-2 bg-dark-700 border border-dark-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+            disabled={isGenerating}
+          >
+            <option value="0">Standard (Alle Layer)</option>
+            <option value="1">CLIP Skip 1 (Realistic)</option>
+            <option value="2">CLIP Skip 2 (Pony/Anime)</option>
+            <option value="3">CLIP Skip 3 (Extreme Anime)</option>
+          </select>
+          <p className="text-xs text-gray-500">
+            {clipSkip === 0 && '✓ Präzise Interpretation für realistische Models'}
+            {clipSkip === 1 && '✓ Leicht lockerer für kreative Freiheit'}
+            {clipSkip === 2 && '✓ Empfohlen für Pony Diffusion & Anime Models'}
+            {clipSkip === 3 && '✓ Maximum künstlerische Freiheit'}
+          </p>
         </div>
       </div>
 

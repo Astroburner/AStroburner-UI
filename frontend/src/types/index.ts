@@ -10,6 +10,7 @@ export interface GenerateImageRequest {
   scheduler?: string;
   denoise_strength?: number;
   input_image?: string;
+  clip_skip?: number;
 }
 
 export interface GeneratedImage {

@@ -22,6 +22,7 @@ export default function Header() {
     scheduler,
     denoiseStrength,
     inputImage,
+    clipSkip,
     setIsGenerating,
     addGeneratedImages
   } = useAppStore();
@@ -65,6 +66,7 @@ export default function Header() {
         scheduler: scheduler,
         denoise_strength: inputImage ? denoiseStrength : undefined,
         input_image: inputImage || undefined,
+        clip_skip: clipSkip,
       });
 
       if (response.success) {

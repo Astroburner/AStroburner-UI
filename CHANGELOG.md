@@ -7,6 +7,85 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.11] - 2025-10-21
+
+### 🎨 Quality of Life Update - Cleaner Logs & CLIP Skip
+
+**New Features:**
+
+1. **Cleaner Backend Logs**
+   - Suppressed non-critical warnings from diffusers, transformers, peft, torch, PIL
+   - Filters: UserWarning, FutureWarning, DeprecationWarning
+   - Logs are now much more readable and focused on important messages
+   - Better development and debugging experience
+
+2. **CLIP Skip Setting** 
+   - New parameter for controlling CLIP text encoder layers
+   - UI: Dropdown in GeneratePanel with 4 options (0, 1, 2, 3)
+   - Backend: Dynamically adjusts `num_hidden_layers` during generation
+   - Automatically restores original layer count after generation
+   
+   **CLIP Skip Values:**
+   - `0` (Standard): All layers - Best for realistic/photorealistic models
+   - `1`: Skip 1 layer - Slightly more creative freedom
+   - `2`: Skip 2 layers - **Recommended for Pony Diffusion XL & Anime models**
+   - `3`: Skip 3 layers - Maximum artistic freedom for extreme anime styles
+   
+   **Use Cases:**
+   - Pony Diffusion XL performs better with CLIP Skip 2
+   - Anime models benefit from CLIP Skip 2-3
+   - Realistic models (SDXL, Realistic Vision) work best with CLIP Skip 0
+
+**Technical Implementation:**
+
+*Backend:*
+```python
+# main.py - Log suppression
+warnings.filterwarnings("ignore")
+logging.getLogger("diffusers").setLevel(logging.ERROR)
+logging.getLogger("transformers").setLevel(logging.ERROR)
+
+# model_manager.py - CLIP Skip implementation
+def generate_image(..., clip_skip: int = 0):
+    if clip_skip > 0:
+        original_layers = pipeline.text_encoder.config.num_hidden_layers
+        pipeline.text_encoder.config.num_hidden_layers = original_layers - clip_skip
+        # ... generation ...
+        pipeline.text_encoder.config.num_hidden_layers = original_layers  # Restore
+```
+
+*Frontend:*
+```typescript
+// useAppStore.ts - New state
+clipSkip: number;
+setClipSkip: (clipSkip: number) => void;
+
+// GeneratePanel.tsx - New UI element
+<select value={clipSkip} onChange={(e) => setClipSkip(Number(e.target.value))}>
+  <option value="0">Standard (Alle Layer)</option>
+  <option value="1">CLIP Skip 1 (Realistic)</option>
+  <option value="2">CLIP Skip 2 (Pony/Anime)</option>
+  <option value="3">CLIP Skip 3 (Extreme Anime)</option>
+</select>
+```
+
+**Files Changed:**
+- `backend/main.py`: Added warning filters and log level settings
+- `backend/core/model_manager.py`: Added clip_skip parameter to generate_image()
+- `backend/api/routes.py`: Added clip_skip to GenerateImageRequest model
+- `frontend/src/hooks/useAppStore.ts`: Added clipSkip state and setter
+- `frontend/src/components/GeneratePanel.tsx`: Added CLIP Skip dropdown UI
+- `frontend/src/components/Header.tsx`: Added clipSkip to API call
+- `frontend/src/types/index.ts`: Added clip_skip to GenerateImageRequest interface
+
+**Benefits:**
+- ✅ Cleaner, more focused logs for better debugging
+- ✅ Better compatibility with Pony Diffusion and anime models
+- ✅ More control over text interpretation and artistic freedom
+- ✅ Standard feature parity with ComfyUI/A1111
+
+---
+
 ## [1.9.10] - 2025-10-21
 
 ### 🔥 Critical Dependency Fix - PEFT Library Missing + Semver Fix

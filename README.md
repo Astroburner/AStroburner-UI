@@ -2,13 +2,22 @@
 
 Eine moderne Desktop-Anwendung für KI-basierte Bild- und Videogenerierung mit lokalem GPU-Support.
 
-![Astroburner-UI](https://img.shields.io/badge/version-1.9.10-blue)
+![Astroburner-UI](https://img.shields.io/badge/version-1.9.11-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## 🎯 Features
 
-### v1.9.10 Critical Dependency Fix (NEU!)
+### v1.9.11 Quality of Life Update (NEU!)
+- 🧹 **Cleaner Logs** - Warnungen von diffusers/transformers/peft unterdrückt für übersichtlichere Logs
+- 🎨 **CLIP Skip Setting** - Neue Einstellung für bessere Kontrolle über Text-Encoder
+  - Standard (0): Präzise Interpretation für realistische Models
+  - CLIP Skip 1: Leicht lockerer für kreative Freiheit
+  - CLIP Skip 2: Empfohlen für Pony Diffusion & Anime Models
+  - CLIP Skip 3: Maximum künstlerische Freiheit
+- 📊 **Bessere Model-Kompatibilität** - Optimierte Unterstützung für Pony Diffusion und Anime Models
+
+### v1.9.10 Critical Dependency Fix
 - 🔥 **PEFT Library Added** - Fehlende PEFT-Dependency zu requirements.txt hinzugefügt
 - ✅ **LoRA Loading Fixed** - `fuse_lora()` und `unfuse_lora()` funktionieren jetzt korrekt
 - 📦 **Installation Update** - `pip install -r requirements.txt` installiert jetzt PEFT automatisch
