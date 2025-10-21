@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.9] - 2025-10-21
+
+### 🔥 Critical LoRA Bugfix (Complete PEFT-Free Implementation)
+- **FIXED: LoRA loading with Custom Models completely broken** - LoRAs caused PEFT errors
+  - **Root Cause:** `load_lora_weights()` + `set_adapters()` requires PEFT backend
+  - **Previous Fix (v1.9.6):** Incomplete - still called PEFT methods
+  - **New Solution:** Complete rewrite using `fuse_lora()` method exclusively
+  
+### 🎯 Technical Implementation
+
+**Problem Analysis:**
+```
+ERROR: PEFT backend is required for this method.
+- load_lora_weights() ✅ Works
+- set_adapters() ❌ Requires PEFT
+- unload_lora_weights() ❌ Requires PEFT
+```
+
+**New PEFT-Free Approach:**
+```python
+# OLD (v1.9.6-v1.9.8) - BROKEN
+self.pipeline.load_lora_weights(dir, weight_name=file, adapter_name=name)
+self.pipeline.set_adapters([name], adapter_weights=[weight])  # ❌ PEFT ERROR
+
+# NEW (v1.9.9) - WORKS
+self.pipeline.load_lora_weights(dir, weight_name=file)  # No adapter_name
+self.pipeline.fuse_lora(lora_scale=weight)  # ✅ PEFT-FREE
+```
+
+**Changes:**
+- `load_loras()`: Direct `fuse_lora()` after `load_lora_weights()`
+- `unload_all_loras()`: Use `unfuse_lora()` instead of `unload_lora_weights()`
+- Completely bypasses PEFT adapter system
+- LoRAs are fused directly into pipeline weights
+
+**Benefits:**
+- ✅ No PEFT dependency
+- ✅ Works with Custom Models
+- ✅ Works with Standard Models
+- ✅ Simpler code path
+- ✅ Better logging
+
+### 📝 User Experience
+- LoRAs laden ohne Fehler
+- Custom Models + LoRAs funktionieren zusammen
+- Keine PEFT-Warnungen mehr im Log
+
+---
+
 ## [1.9.8] - 2025-10-21
 
 ### 🔥 Critical Bugfix (Custom Model Generation)

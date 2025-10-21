@@ -542,7 +542,7 @@ class ModelManager:
         }
     
     def load_loras(self, loras: list) -> Dict:
-        """Load multiple LoRAs (up to 5) into the pipeline using modern diffusers API"""
+        """Load multiple LoRAs (up to 5) using PEFT-free fuse_lora method"""
         try:
             if self.pipeline is None:
                 return {"success": False, "error": "No model loaded"}
@@ -553,11 +553,7 @@ class ModelManager:
             # Unload existing LoRAs first
             self.unload_all_loras()
             
-            # Prepare adapter names and weights
-            adapter_names = []
-            adapter_weights = []
-            
-            # Load each LoRA
+            # Load each LoRA using fuse_lora (PEFT-free method)
             for lora in loras:
                 file_path = lora.get("file_path")
                 weight = lora.get("weight", 1.0)
@@ -568,61 +564,37 @@ class ModelManager:
                     continue
                 
                 try:
-                    # Load LoRA weights using modern diffusers API (no PEFT required)
-                    logger.info(f"Loading LoRA: {lora_name} from {file_path} with weight {weight}")
+                    logger.info(f"Loading LoRA (PEFT-free): {lora_name} from {file_path} with weight {weight}")
                     
-                    # Load LoRA into pipeline using directory-based loading
-                    # This works without PEFT backend
+                    # Use direct fuse_lora instead of load_lora_weights + set_adapters
+                    # This bypasses PEFT requirement entirely
                     lora_dir = str(Path(file_path).parent)
                     lora_file = Path(file_path).name
                     
-                    self.pipeline.load_lora_weights(
-                        lora_dir,
-                        weight_name=lora_file,
-                        adapter_name=lora_name
-                    )
-                    
-                    adapter_names.append(lora_name)
-                    adapter_weights.append(weight)
+                    # Load and fuse LoRA into pipeline weights directly
+                    self.pipeline.load_lora_weights(lora_dir, weight_name=lora_file)
+                    self.pipeline.fuse_lora(lora_scale=weight)
+                    logger.info(f"LoRA fused into txt2img pipeline: {lora_name} (scale={weight})")
                     
                     # Same for img2img pipeline if exists
                     if self.img2img_pipeline:
-                        self.img2img_pipeline.load_lora_weights(
-                            lora_dir,
-                            weight_name=lora_file,
-                            adapter_name=lora_name
-                        )
+                        self.img2img_pipeline.load_lora_weights(lora_dir, weight_name=lora_file)
+                        self.img2img_pipeline.fuse_lora(lora_scale=weight)
+                        logger.info(f"LoRA fused into img2img pipeline: {lora_name} (scale={weight})")
                     
                     self.loaded_loras.append(lora)
-                    logger.info(f"LoRA loaded successfully: {lora_name}")
+                    logger.info(f"✓ LoRA loaded successfully: {lora_name}")
                     
                 except Exception as e:
                     logger.error(f"Error loading LoRA {lora_name}: {e}")
+                    # Continue with other LoRAs even if one fails
                     continue
-            
-            # Set all adapters with their weights if any were loaded
-            if adapter_names:
-                try:
-                    self.pipeline.set_adapters(adapter_names, adapter_weights=adapter_weights)
-                    if self.img2img_pipeline:
-                        self.img2img_pipeline.set_adapters(adapter_names, adapter_weights=adapter_weights)
-                    logger.info(f"Set {len(adapter_names)} adapter(s) with weights: {adapter_weights}")
-                except Exception as e:
-                    logger.warning(f"Could not set adapters (PEFT may not be available): {e}")
-                    # Fallback: Use fuse_lora for non-PEFT systems
-                    try:
-                        for name, weight in zip(adapter_names, adapter_weights):
-                            self.pipeline.fuse_lora(lora_scale=weight)
-                            if self.img2img_pipeline:
-                                self.img2img_pipeline.fuse_lora(lora_scale=weight)
-                        logger.info(f"Fused LoRAs with weights (PEFT-free method)")
-                    except Exception as e2:
-                        logger.error(f"Fallback LoRA fusion also failed: {e2}")
             
             return {
                 "success": True,
                 "loaded_count": len(self.loaded_loras),
-                "loras": [l.get("name") for l in self.loaded_loras]
+                "loras": [l.get("name") for l in self.loaded_loras],
+                "method": "fuse_lora (PEFT-free)"
             }
             
         except Exception as e:
@@ -630,34 +602,22 @@ class ModelManager:
             return {"success": False, "error": str(e)}
     
     def unload_all_loras(self):
-        """Unload all LoRAs from the pipeline (PEFT-free method)"""
+        """Unload all LoRAs from the pipeline (PEFT-free unfuse method)"""
         try:
-            if self.pipeline and hasattr(self.pipeline, 'unload_lora_weights'):
+            # Use unfuse_lora instead of unload_lora_weights to avoid PEFT requirement
+            if self.pipeline and hasattr(self.pipeline, 'unfuse_lora'):
                 try:
-                    self.pipeline.unload_lora_weights()
-                    logger.info("Unloaded all LoRAs from txt2img pipeline")
+                    self.pipeline.unfuse_lora()
+                    logger.info("✓ Unfused LoRAs from txt2img pipeline (PEFT-free)")
                 except Exception as e:
-                    logger.warning(f"Error unloading LoRAs (PEFT may not be available): {e}")
-                    # Fallback: Try unfuse_lora for non-PEFT systems
-                    try:
-                        if hasattr(self.pipeline, 'unfuse_lora'):
-                            self.pipeline.unfuse_lora()
-                            logger.info("Unfused LoRAs from txt2img pipeline (PEFT-free method)")
-                    except:
-                        pass
+                    logger.warning(f"Could not unfuse LoRAs from txt2img: {e}")
             
-            if self.img2img_pipeline and hasattr(self.img2img_pipeline, 'unload_lora_weights'):
+            if self.img2img_pipeline and hasattr(self.img2img_pipeline, 'unfuse_lora'):
                 try:
-                    self.img2img_pipeline.unload_lora_weights()
-                    logger.info("Unloaded all LoRAs from img2img pipeline")
+                    self.img2img_pipeline.unfuse_lora()
+                    logger.info("✓ Unfused LoRAs from img2img pipeline (PEFT-free)")
                 except Exception as e:
-                    logger.warning(f"Error unloading LoRAs from img2img: {e}")
-                    try:
-                        if hasattr(self.img2img_pipeline, 'unfuse_lora'):
-                            self.img2img_pipeline.unfuse_lora()
-                            logger.info("Unfused LoRAs from img2img pipeline (PEFT-free method)")
-                    except:
-                        pass
+                    logger.warning(f"Could not unfuse LoRAs from img2img: {e}")
             
             self.loaded_loras = []
             
