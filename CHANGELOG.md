@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.8] - 2025-10-21
+
+### 🔥 Critical Bugfix (Custom Model Generation)
+- **FIXED: Custom Model Generation nicht möglich** - Bildgenerierung funktionierte nicht mit Custom Models
+  - **Root Cause:** `currentModel` im App Store wurde nicht aktualisiert nach Custom Model laden
+  - **Symptom:** Generate-Button validierte kein Model geladen → blockierte Generierung
+  - **Solution:** `setCurrentModel()` wird jetzt nach erfolgreichem Custom Model laden aufgerufen
+  - File: `frontend/src/components/CustomModelList.tsx`
+  
+- **Model State Synchronization Improved**
+  - Custom Model Info wird korrekt in App Store gespeichert
+  - Format: `{ key: 'custom:ModelName', name, type, loaded: true, downloaded: true }`
+  - Ermöglicht Generate-Button Validation
+  
+- **Standard Model Loading Enhanced**
+  - Deaktiviert alle Custom Models beim Laden eines Standard-Models
+  - Verhindert Konflikt zwischen Standard und Custom Models
+  - File: `backend/api/routes.py` - `/models/load` endpoint
+
+### 🎯 Technical Details
+**Frontend Changes:**
+```typescript
+// CustomModelList.tsx - handleLoadModel()
+setCurrentModel({
+  key: `custom:${model.name}`,
+  name: model.name,
+  type: model.model_type,
+  loaded: true,
+  downloaded: true
+});
+```
+
+**Backend Changes:**
+```python
+# routes.py - load_model()
+await db.deactivate_all_custom_models()  # Deactivate custom models when loading standard model
+```
+
+---
+
 ## [1.9.7] - 2025-10-21
 
 ### 🐛 Bugfixes (UX Improvements)

@@ -2,13 +2,18 @@
 
 Eine moderne Desktop-Anwendung für KI-basierte Bild- und Videogenerierung mit lokalem GPU-Support.
 
-![Astroburner-UI](https://img.shields.io/badge/version-1.9.7-blue)
+![Astroburner-UI](https://img.shields.io/badge/version-1.9.8-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## 🎯 Features
 
-### v1.9.7 Bugfix (NEU!)
+### v1.9.8 Critical Bugfix (NEU!)
+- 🔥 **Custom Model Generation Fixed** - Bildgenerierung mit Custom Models funktioniert jetzt
+- 🔄 **Model State Sync** - currentModel wird korrekt gesetzt nach Custom Model laden
+- 🔒 **Model Isolation** - Standard-Models deaktivieren Custom Models automatisch
+
+### v1.9.7 Bugfix
 - 🔄 **Custom Model State Reset** - Aktiv-Status wird bei App-Start zurückgesetzt
 - ⚠️ **Model Check Validation** - Fehlermeldung wenn kein Model geladen statt automatisches Standard-Model laden
 - 🎬 **Placeholder Fix** - Bildgenerierungs-Placeholders werden jetzt korrekt im Generate-Tab angezeigt

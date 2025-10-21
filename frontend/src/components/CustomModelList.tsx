@@ -19,7 +19,7 @@ interface CustomModelListProps {
 }
 
 export default function CustomModelList({ onModelsChanged }: CustomModelListProps) {
-  const { showToast } = useAppStore();
+  const { showToast, setCurrentModel } = useAppStore();
   const [models, setModels] = useState<CustomModel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -77,6 +77,15 @@ export default function CustomModelList({ onModelsChanged }: CustomModelListProp
       }
 
       showToast('Fertig in VRAM geladen', 'success');
+      
+      // CRITICAL: Update currentModel in App Store after loading custom model
+      setCurrentModel({
+        key: `custom:${model.name}`,
+        name: model.name,
+        type: model.model_type,
+        loaded: true,
+        downloaded: true
+      });
       
       await loadModels();
       onModelsChanged();

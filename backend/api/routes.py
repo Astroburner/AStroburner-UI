@@ -98,6 +98,10 @@ async def load_model(request: LoadModelRequest):
     result = model_manager.load_model(request.model_key)
     if not result["success"]:
         raise HTTPException(status_code=400, detail=result["error"])
+    
+    # Deactivate all custom models when loading a standard model
+    await db.deactivate_all_custom_models()
+    
     return result
 
 @router.post("/generate/image")
