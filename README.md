@@ -2,13 +2,26 @@
 
 Eine moderne Desktop-Anwendung für KI-basierte Bild- und Videogenerierung mit lokalem GPU-Support.
 
-![Astroburner-UI](https://img.shields.io/badge/version-1.9.0-blue)
+![Astroburner-UI](https://img.shields.io/badge/version-1.9.5-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## 🎯 Features
 
-### v1.9.0 Major Update (NEU!)
+### v1.9.5 UI/UX Update (NEU!)
+- 🔔 **Toast-Benachrichtigungen** - Live-Feedback beim Model-Laden
+  - "Model wird geladen..." während des Ladevorgangs
+  - "Fertig in VRAM geladen" nach erfolgreichem Laden (3 Sekunden)
+  - Fehlerbenachrichtigungen mit Details
+- 🎬 **Bildgenerierungs-Placeholders** - Echtzeit-Feedback während Generation
+  - Animierte Placeholders für jedes zu generierende Bild
+  - Shimmer-Effekt für dynamische Visualisierung
+  - "Generiere Bild X..." Status-Anzeige
+- ✅ **Thumbnail-Verifizierung** - Optimierte Custom Model Vorschaubilder
+  - Korrekte Anzeige von Thumbnails
+  - Fallback zu Icon bei fehlenden Bildern
+
+### v1.9.0 Major Update
 - 🎨 **Custom Model Integration** - Eigene .safetensors Modelle hochladen
 - 🤖 **Automatische Typ-Erkennung** - Erkennt SD1.5, SDXL, FLUX automatisch aus Tensor-Struktur
 - 🎯 **Manuelle Klassifizierung** - 14 Model-Typen manuell zuordnen (SD1.5, SDXL, FLUX, etc.)
