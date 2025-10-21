@@ -2,13 +2,19 @@
 
 Eine moderne Desktop-Anwendung für KI-basierte Bild- und Videogenerierung mit lokalem GPU-Support.
 
-![Astroburner-UI](https://img.shields.io/badge/version-1.9.5-blue)
+![Astroburner-UI](https://img.shields.io/badge/version-1.9.6-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## 🎯 Features
 
-### v1.9.5 UI/UX Update (NEU!)
+### v1.9.6 Bugfix (NEU!)
+- 🐛 **LoRA Loading Fixed** - PEFT Backend Fehler behoben
+  - Moderne diffusers API ohne PEFT-Abhängigkeit
+  - Fallback zu fuse_lora für Systeme ohne PEFT
+  - Stabileres LoRA-Laden und Entladen
+
+### v1.9.5 UI/UX Update
 - 🔔 **Toast-Benachrichtigungen** - Live-Feedback beim Model-Laden
   - "Model wird geladen..." während des Ladevorgangs
   - "Fertig in VRAM geladen" nach erfolgreichem Laden (3 Sekunden)

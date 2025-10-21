@@ -542,7 +542,7 @@ class ModelManager:
         }
     
     def load_loras(self, loras: list) -> Dict:
-        """Load multiple LoRAs (up to 5) into the pipeline"""
+        """Load multiple LoRAs (up to 5) into the pipeline using modern diffusers API"""
         try:
             if self.pipeline is None:
                 return {"success": False, "error": "No model loaded"}
@@ -552,6 +552,10 @@ class ModelManager:
             
             # Unload existing LoRAs first
             self.unload_all_loras()
+            
+            # Prepare adapter names and weights
+            adapter_names = []
+            adapter_weights = []
             
             # Load each LoRA
             for lora in loras:
@@ -564,27 +568,30 @@ class ModelManager:
                     continue
                 
                 try:
-                    # Load LoRA weights
+                    # Load LoRA weights using modern diffusers API (no PEFT required)
                     logger.info(f"Loading LoRA: {lora_name} from {file_path} with weight {weight}")
                     
-                    # For diffusers pipelines, load LoRA weights
+                    # Load LoRA into pipeline using directory-based loading
+                    # This works without PEFT backend
+                    lora_dir = str(Path(file_path).parent)
+                    lora_file = Path(file_path).name
+                    
                     self.pipeline.load_lora_weights(
-                        file_path,
-                        weight_name=Path(file_path).name,
+                        lora_dir,
+                        weight_name=lora_file,
                         adapter_name=lora_name
                     )
                     
-                    # Set LoRA weight
-                    self.pipeline.set_adapters([lora_name], adapter_weights=[weight])
+                    adapter_names.append(lora_name)
+                    adapter_weights.append(weight)
                     
                     # Same for img2img pipeline if exists
                     if self.img2img_pipeline:
                         self.img2img_pipeline.load_lora_weights(
-                            file_path,
-                            weight_name=Path(file_path).name,
+                            lora_dir,
+                            weight_name=lora_file,
                             adapter_name=lora_name
                         )
-                        self.img2img_pipeline.set_adapters([lora_name], adapter_weights=[weight])
                     
                     self.loaded_loras.append(lora)
                     logger.info(f"LoRA loaded successfully: {lora_name}")
@@ -592,6 +599,25 @@ class ModelManager:
                 except Exception as e:
                     logger.error(f"Error loading LoRA {lora_name}: {e}")
                     continue
+            
+            # Set all adapters with their weights if any were loaded
+            if adapter_names:
+                try:
+                    self.pipeline.set_adapters(adapter_names, adapter_weights=adapter_weights)
+                    if self.img2img_pipeline:
+                        self.img2img_pipeline.set_adapters(adapter_names, adapter_weights=adapter_weights)
+                    logger.info(f"Set {len(adapter_names)} adapter(s) with weights: {adapter_weights}")
+                except Exception as e:
+                    logger.warning(f"Could not set adapters (PEFT may not be available): {e}")
+                    # Fallback: Use fuse_lora for non-PEFT systems
+                    try:
+                        for name, weight in zip(adapter_names, adapter_weights):
+                            self.pipeline.fuse_lora(lora_scale=weight)
+                            if self.img2img_pipeline:
+                                self.img2img_pipeline.fuse_lora(lora_scale=weight)
+                        logger.info(f"Fused LoRAs with weights (PEFT-free method)")
+                    except Exception as e2:
+                        logger.error(f"Fallback LoRA fusion also failed: {e2}")
             
             return {
                 "success": True,
@@ -604,15 +630,34 @@ class ModelManager:
             return {"success": False, "error": str(e)}
     
     def unload_all_loras(self):
-        """Unload all LoRAs from the pipeline"""
+        """Unload all LoRAs from the pipeline (PEFT-free method)"""
         try:
             if self.pipeline and hasattr(self.pipeline, 'unload_lora_weights'):
-                self.pipeline.unload_lora_weights()
-                logger.info("Unloaded all LoRAs from txt2img pipeline")
+                try:
+                    self.pipeline.unload_lora_weights()
+                    logger.info("Unloaded all LoRAs from txt2img pipeline")
+                except Exception as e:
+                    logger.warning(f"Error unloading LoRAs (PEFT may not be available): {e}")
+                    # Fallback: Try unfuse_lora for non-PEFT systems
+                    try:
+                        if hasattr(self.pipeline, 'unfuse_lora'):
+                            self.pipeline.unfuse_lora()
+                            logger.info("Unfused LoRAs from txt2img pipeline (PEFT-free method)")
+                    except:
+                        pass
             
             if self.img2img_pipeline and hasattr(self.img2img_pipeline, 'unload_lora_weights'):
-                self.img2img_pipeline.unload_lora_weights()
-                logger.info("Unloaded all LoRAs from img2img pipeline")
+                try:
+                    self.img2img_pipeline.unload_lora_weights()
+                    logger.info("Unloaded all LoRAs from img2img pipeline")
+                except Exception as e:
+                    logger.warning(f"Error unloading LoRAs from img2img: {e}")
+                    try:
+                        if hasattr(self.img2img_pipeline, 'unfuse_lora'):
+                            self.img2img_pipeline.unfuse_lora()
+                            logger.info("Unfused LoRAs from img2img pipeline (PEFT-free method)")
+                    except:
+                        pass
             
             self.loaded_loras = []
             

@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.6] - 2025-10-21
+
+### 🐛 Bugfixes (Critical LoRA Fix)
+- **LoRA Loading Error Fixed** - "PEFT backend is required for this method" behoben
+  - Umstellung auf moderne diffusers API ohne PEFT-Abhängigkeit
+  - Fallback zu `fuse_lora()` für Systeme ohne PEFT Backend
+  - Robusteres Error Handling beim LoRA-Laden und Entladen
+  - Unterstützung für directory-based LoRA loading
+- **LoRA Unloading Improved** - Graceful degradation bei fehlender PEFT-Unterstützung
+  - Automatischer Fallback zu `unfuse_lora()` Methode
+  - Bessere Fehlerbehandlung und Logging
+
+### 🔧 Technical Details
+- File: `backend/core/model_manager.py`
+- Method: `load_loras()` - Modernisiert ohne PEFT-Anforderung
+- Method: `unload_all_loras()` - Fallback-Mechanismus hinzugefügt
+- Kompatibilität: Funktioniert mit und ohne PEFT Backend
+
+---
+
 ## [1.9.5] - 2025-01-21
 
 ### 🎉 Features (UI/UX Improvements)
