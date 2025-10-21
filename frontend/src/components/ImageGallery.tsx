@@ -14,7 +14,8 @@ export default function ImageGallery() {
     link.click();
   };
 
-  if (generatedImages.length === 0) {
+  // Show empty state only when not generating and no images
+  if (generatedImages.length === 0 && !isGenerating) {
     return (
       <div className="h-full flex items-center justify-center bg-dark-900">
         <div className="text-center text-gray-500">
@@ -34,8 +35,8 @@ export default function ImageGallery() {
           <ImagePlaceholder key={`placeholder-${index}`} index={index} />
         ))}
         
-        {/* Show generated images */}
-        {generatedImages.map((image, index) => (
+        {/* Show generated images (only when not generating to avoid overlap) */}
+        {!isGenerating && generatedImages.map((image, index) => (
           <div
             key={`${image.filename}-${index}`}
             className="group relative aspect-square bg-dark-800 rounded-lg overflow-hidden border border-dark-600 hover:border-primary-500 transition-all cursor-pointer"

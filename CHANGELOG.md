@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.7] - 2025-10-21
+
+### 🐛 Bugfixes (UX Improvements)
+- **Custom Model State Reset on Startup** - Behebt Problem dass Custom Models als "aktiv" angezeigt wurden nach App-Neustart
+  - `backend/main.py`: Automatisches `deactivate_all_custom_models()` beim App-Start
+  - Verhindert verwirrende UI-Zustände nach Neustart
+  
+- **Model Validation Before Generation** - Verhindert automatisches Laden von Standard-Models
+  - `frontend/src/components/Header.tsx`: Model-Check vor Bildgenerierung
+  - Zeigt Fehlermeldung: "Kein Model oder Custom Model geladen"
+  - User muss explizit ein Model laden bevor er generieren kann
+  
+- **Image Generation Placeholders Fixed** - Placeholders werden jetzt korrekt angezeigt
+  - `frontend/src/components/ImageGallery.tsx`: Conditional Rendering verbessert
+  - Empty State nur wenn nicht generiert wird UND keine Bilder vorhanden
+  - Placeholders werden während Generierung auch ohne vorherige Bilder angezeigt
+  - Verhindert Überlappung von Placeholders und generierten Bildern
+
+### 🎯 User Experience
+- Klarere Kommunikation wenn kein Model geladen ist
+- Konsistenter UI-Status nach App-Neustart
+- Besseres visuelles Feedback während Bildgenerierung
+
+---
+
 ## [1.9.6] - 2025-10-21
 
 ### 🐛 Bugfixes (Critical LoRA Fix)

@@ -29,6 +29,11 @@ async def lifespan(app: FastAPI):
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     await db.init_db()
     logger.info("Database initialized")
+    
+    # Reset all custom model active states on startup
+    await db.deactivate_all_custom_models()
+    logger.info("Reset all custom model active states")
+    
     yield
     # Shutdown
     logger.info("Shutting down...")

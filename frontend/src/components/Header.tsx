@@ -44,6 +44,12 @@ export default function Header() {
       return;
     }
 
+    // Check if a model is loaded
+    if (!currentModel) {
+      alert('Kein Model oder Custom Model geladen. Bitte lade zuerst ein Model in den Settings.');
+      return;
+    }
+
     setIsGenerating(true);
 
     try {
