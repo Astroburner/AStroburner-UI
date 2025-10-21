@@ -11,7 +11,7 @@ import CustomModelList from './CustomModelList';
 type SettingsTab = 'models' | 'loras' | 'custom-models';
 
 export default function SettingsPanel() {
-  const { models, setModels, currentModel, setCurrentModel, setIsLoadingModel, isLoadingModel } =
+  const { models, setModels, currentModel, setCurrentModel, setIsLoadingModel, isLoadingModel, showToast } =
     useAppStore();
   const [stats, setStats] = useState<AppStats | null>(null);
   const [activeTab, setActiveTab] = useState<SettingsTab>('models');
@@ -51,8 +51,12 @@ export default function SettingsPanel() {
   const handleLoadModel = async (modelKey: string) => {
     try {
       setIsLoadingModel(true);
+      showToast('Model wird geladen...', 'loading');
+      
       const response = await apiService.loadModel(modelKey);
       if (response.success) {
+        showToast('Fertig in VRAM geladen', 'success');
+        
         const model = models.find((m) => m.key === modelKey);
         if (model) {
           setCurrentModel(model);
@@ -61,7 +65,7 @@ export default function SettingsPanel() {
       }
     } catch (error) {
       console.error('Error loading model:', error);
-      alert('Fehler beim Laden des Models');
+      showToast('Fehler beim Laden', 'error');
     } finally {
       setIsLoadingModel(false);
     }
@@ -270,7 +274,7 @@ export default function SettingsPanel() {
           <div className="text-gray-300 space-y-2 text-sm">
             <div className="flex justify-between">
               <span>Version:</span>
-              <span className="font-medium">1.9.0</span>
+              <span className="font-medium">1.9.5</span>
             </div>
             <div className="flex justify-between">
               <span>Build:</span>

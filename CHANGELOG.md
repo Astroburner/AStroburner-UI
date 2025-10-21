@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.5] - 2025-01-21
+
+### 🎉 Features (UI/UX Improvements)
+- **Toast Notifications** - Popup-Benachrichtigungen rechts oben beim Model-Laden
+  - "Model wird geladen..." während des Ladens
+  - "Fertig in VRAM geladen" für 3 Sekunden nach erfolgreichem Laden
+  - Fehlerbenachrichtigungen bei Problemen
+- **Image Generation Placeholders** - Live-Feedback während der Bildgenerierung
+  - Zeigt Placeholder für jedes zu generierende Bild
+  - Animierte Loading-Indikatoren mit Shimmer-Effekt
+  - "Generiere Bild X..." Status-Text
+- **Thumbnail Verification** - Überprüfung der Custom Model Thumbnails
+  - Korrekte Anzeige von Vorschaubildern
+  - Fallback zu Icon bei fehlenden Thumbnails
+
+### 🔧 Frontend Components
+- Component: `Toast.tsx` - Toast-Benachrichtigungssystem mit Slide-In-Animation
+- Component: `ImagePlaceholder.tsx` - Placeholder für Bildgenerierung
+- Store: Toast-State in `useAppStore` (showToast, hideToast)
+- Integration: Toast in `SettingsPanel` und `CustomModelList`
+- Integration: Placeholders in `ImageGallery`
+- CSS: Slide-In und Shimmer-Animationen
+
+### 📚 Documentation
+- Version: Updated to 1.9.5 in all config files
+- CHANGELOG.md: v1.9.5 section added
+
+---
+
 ## [1.9.0] - 2025-01-20
 
 ### 🎉 Features (Custom Model Integration)

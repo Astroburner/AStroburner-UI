@@ -37,6 +37,12 @@ interface AppState {
   showHistory: boolean;
   selectedTab: 'generate' | 'history' | 'settings';
   
+  // Toast notifications
+  toast: {
+    message: string;
+    type: 'loading' | 'success' | 'error';
+  } | null;
+  
   // Actions
   setGeneratedImages: (images: GeneratedImage[]) => void;
   addGeneratedImages: (images: GeneratedImage[]) => void;
@@ -80,6 +86,9 @@ interface AppState {
   setShowHistory: (value: boolean) => void;
   setSelectedTab: (tab: 'generate' | 'history' | 'settings') => void;
   
+  showToast: (message: string, type: 'loading' | 'success' | 'error') => void;
+  hideToast: () => void;
+  
   resetParams: () => void;
 }
 
@@ -109,6 +118,8 @@ export const useAppStore = create<AppState>((set) => ({
   gpuInfo: null,
   
   activeLoras: [],
+  
+  toast: null,
   
   showSettings: false,
   showHistory: false,
@@ -162,6 +173,9 @@ export const useAppStore = create<AppState>((set) => ({
   setShowSettings: (value) => set({ showSettings: value }),
   setShowHistory: (value) => set({ showHistory: value }),
   setSelectedTab: (tab) => set({ selectedTab: tab }),
+  
+  showToast: (message, type) => set({ toast: { message, type } }),
+  hideToast: () => set({ toast: null }),
   
   resetParams: () => set({
     width: 1024,

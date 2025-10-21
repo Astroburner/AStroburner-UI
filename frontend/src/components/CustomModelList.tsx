@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FiList, FiTrash2, FiRefreshCw, FiCheck, FiImage, FiDownload } from 'react-icons/fi';
+import { useAppStore } from '../hooks/useAppStore';
 
 interface CustomModel {
   id: number;
@@ -18,6 +19,7 @@ interface CustomModelListProps {
 }
 
 export default function CustomModelList({ onModelsChanged }: CustomModelListProps) {
+  const { showToast } = useAppStore();
   const [models, setModels] = useState<CustomModel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -62,6 +64,8 @@ export default function CustomModelList({ onModelsChanged }: CustomModelListProp
 
   const handleLoadModel = async (model: CustomModel) => {
     try {
+      showToast('Custom Model wird geladen...', 'loading');
+      
       const response = await fetch('http://127.0.0.1:8000/api/custom-models/load', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -72,12 +76,13 @@ export default function CustomModelList({ onModelsChanged }: CustomModelListProp
         throw new Error('Fehler beim Laden');
       }
 
+      showToast('Fertig in VRAM geladen', 'success');
+      
       await loadModels();
       onModelsChanged();
-      alert(`Custom Model "${model.name}" erfolgreich geladen!`);
     } catch (error) {
       console.error('Error loading custom model:', error);
-      alert('Fehler beim Laden des Custom Models');
+      showToast('Fehler beim Laden', 'error');
     }
   };
 

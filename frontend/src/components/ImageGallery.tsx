@@ -1,9 +1,10 @@
 import { FiDownload, FiMaximize2 } from 'react-icons/fi';
 import { useAppStore } from '../hooks/useAppStore';
 import { useState } from 'react';
+import ImagePlaceholder from './ImagePlaceholder';
 
 export default function ImageGallery() {
-  const { generatedImages } = useAppStore();
+  const { generatedImages, isGenerating, numImages } = useAppStore();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const handleDownload = (base64: string, filename: string) => {
@@ -28,6 +29,12 @@ export default function ImageGallery() {
   return (
     <div className="h-full bg-dark-900 p-6 overflow-auto">
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Show placeholders when generating */}
+        {isGenerating && Array.from({ length: numImages }).map((_, index) => (
+          <ImagePlaceholder key={`placeholder-${index}`} index={index} />
+        ))}
+        
+        {/* Show generated images */}
         {generatedImages.map((image, index) => (
           <div
             key={`${image.filename}-${index}`}
