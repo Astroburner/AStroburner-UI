@@ -568,11 +568,19 @@ async def load_custom_model(request: LoadCustomModelRequest):
         await db.deactivate_all_custom_models()
         
         # Load the model using model_manager
-        # Note: This requires model_manager to support custom safetensors loading
-        # For now, we just mark it as active in the database
+        load_result = model_manager.load_custom_model(
+            model_path=str(model_path),
+            model_type=model_info['model_type'],
+            model_name=model_info['name']
+        )
+        
+        if not load_result.get('success'):
+            raise HTTPException(status_code=500, detail=f"Failed to load model: {load_result.get('error')}")
+        
+        # Mark as active in database
         await db.set_custom_model_active(request.model_id, True)
         
-        logger.info(f"Custom model loaded: {model_info['name']} ({model_info['model_type']})")
+        logger.info(f"Custom model loaded successfully: {model_info['name']} ({model_info['model_type']})")
         
         return {
             "success": True,
@@ -582,8 +590,10 @@ async def load_custom_model(request: LoadCustomModelRequest):
                 "name": model_info['name'],
                 "model_type": model_info['model_type'],
                 "precision": model_info['precision'],
-                "file_path": model_info['file_path']
-            }
+                "file_path": model_info['file_path'],
+                "loaded": True
+            },
+            "load_result": load_result
         }
     except HTTPException:
         raise

@@ -255,6 +255,113 @@ class ModelManager:
             logger.error(f"Error loading model {model_key}: {e}")
             return {"success": False, "error": str(e)}
     
+    def load_custom_model(self, model_path: str, model_type: str, model_name: str) -> Dict:
+        """Load a custom .safetensors model from local filesystem"""
+        try:
+            # Unload current model if exists
+            if self.pipeline is not None:
+                logger.info(f"Unloading current model: {self.current_model}")
+                del self.pipeline
+                if self.img2img_pipeline is not None:
+                    del self.img2img_pipeline
+                gpu_monitor.clear_cache()
+            
+            logger.info(f"Loading custom model: {model_name} ({model_type}) from {model_path}")
+            
+            # Determine pipeline class based on model type
+            pipeline_class = None
+            img2img_class = None
+            
+            if model_type in ["SD1.5"]:
+                pipeline_class = StableDiffusionPipeline
+                img2img_class = StableDiffusionImg2ImgPipeline
+            elif model_type in ["SDXL", "SDXL-Turbo", "Pony Diffusion XL", "Illustrious XL"]:
+                pipeline_class = StableDiffusionXLPipeline
+                img2img_class = StableDiffusionXLImg2ImgPipeline
+            elif model_type in ["FLUX", "FLUX.1 Dev", "FLUX.1 Kontext"]:
+                pipeline_class = DiffusionPipeline
+                img2img_class = None
+            else:
+                # Default to SDXL for unknown types
+                logger.warning(f"Unknown model type {model_type}, defaulting to SDXL pipeline")
+                pipeline_class = StableDiffusionXLPipeline
+                img2img_class = StableDiffusionXLImg2ImgPipeline
+            
+            # Configure pipeline
+            pipeline_kwargs = {
+                "torch_dtype": self.dtype,
+                "use_safetensors": True,
+            }
+            
+            # Disable NSFW filter if configured
+            if settings.DISABLE_NSFW_FILTER:
+                pipeline_kwargs["safety_checker"] = None
+                pipeline_kwargs["requires_safety_checker"] = False
+                logger.info("NSFW filter disabled for custom model")
+            
+            # Load from single file
+            self.pipeline = pipeline_class.from_single_file(
+                model_path,
+                **pipeline_kwargs
+            )
+            
+            # Move to device
+            self.pipeline = self.pipeline.to(self.device)
+            
+            # Apply optimizations
+            if self.device == "cuda":
+                if settings.ENABLE_XFORMERS:
+                    try:
+                        self.pipeline.enable_xformers_memory_efficient_attention()
+                        logger.info("xFormers enabled")
+                    except Exception as e:
+                        logger.warning(f"Could not enable xFormers: {e}")
+                
+                if settings.ENABLE_ATTENTION_SLICING:
+                    self.pipeline.enable_attention_slicing(1)
+                    logger.info("Attention slicing enabled")
+                
+                if settings.VAE_SLICING:
+                    self.pipeline.enable_vae_slicing()
+                    logger.info("VAE slicing enabled")
+            
+            # Load img2img pipeline if supported
+            if img2img_class:
+                logger.info("Loading img2img pipeline for custom model...")
+                self.img2img_pipeline = img2img_class.from_single_file(
+                    model_path,
+                    **pipeline_kwargs
+                )
+                self.img2img_pipeline = self.img2img_pipeline.to(self.device)
+                
+                # Apply optimizations
+                if self.device == "cuda":
+                    if settings.ENABLE_XFORMERS:
+                        try:
+                            self.img2img_pipeline.enable_xformers_memory_efficient_attention()
+                        except Exception as e:
+                            logger.warning(f"Could not enable xFormers for img2img: {e}")
+                    if settings.ENABLE_ATTENTION_SLICING:
+                        self.img2img_pipeline.enable_attention_slicing(1)
+                    if settings.VAE_SLICING:
+                        self.img2img_pipeline.enable_vae_slicing()
+            
+            self.current_model = f"custom:{model_name}"
+            
+            return {
+                "success": True,
+                "model": f"custom:{model_name}",
+                "name": model_name,
+                "type": model_type,
+                "path": model_path,
+                "device": self.device,
+                "dtype": str(self.dtype)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error loading custom model {model_name}: {e}")
+            return {"success": False, "error": str(e)}
+    
     def generate_image(
         self,
         prompt: str,
@@ -379,6 +486,22 @@ class ModelManager:
         """Get info about currently loaded model"""
         if self.current_model is None:
             return {"loaded": False}
+        
+        # Check if it's a custom model
+        if self.current_model.startswith("custom:"):
+            model_name = self.current_model[7:]  # Remove "custom:" prefix
+            return {
+                "loaded": True,
+                "key": self.current_model,
+                "name": model_name,
+                "model_id": "custom",
+                "type": "custom",
+                "device": self.device
+            }
+        
+        # Regular model from AVAILABLE_MODELS
+        if self.current_model not in self.AVAILABLE_MODELS:
+            return {"loaded": False, "error": "Unknown model"}
         
         model_info = self.AVAILABLE_MODELS[self.current_model]
         return {
