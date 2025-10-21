@@ -20,8 +20,7 @@ from diffusers import (
     KDPM2AncestralDiscreteScheduler,
     UniPCMultistepScheduler
 )
-from transformers import CLIPTextModel, CLIPTextConfig
-from typing import Optional, Dict, Any, Tuple
+from typing import Optional, Dict, Any
 import logging
 from pathlib import Path
 from PIL import Image
@@ -159,13 +158,6 @@ class ModelManager:
         self.dtype = torch.float16 if self.device == "cuda" else torch.float32
         self.loaded_loras: list = []  # Track loaded LoRAs
         
-        # CLIP Skip support
-        self.current_model_id: Optional[str] = None  # Store model_id for encoder reloading
-        self.original_text_encoder: Optional[Any] = None  # Backup original encoder
-        self.original_text_encoder_2: Optional[Any] = None  # Backup SDXL second encoder
-        self.current_clip_skip: int = 0  # Track current CLIP Skip value
-        self.encoder_cache: Dict[Tuple[str, int], Any] = {}  # Cache: (model_id, clip_skip) -> encoder
-        
     def load_model(self, model_key: str) -> Dict:
         """Load a model with optimization"""
         try:
@@ -250,19 +242,6 @@ class ModelManager:
                         self.img2img_pipeline.enable_vae_slicing()
             
             self.current_model = model_key
-            self.current_model_id = model_info["model_id"]  # Store for CLIP Skip
-            
-            # Backup original text encoders for CLIP Skip
-            if hasattr(self.pipeline, 'text_encoder'):
-                self.original_text_encoder = self.pipeline.text_encoder
-                logger.info("Original text_encoder backed up for CLIP Skip")
-            if hasattr(self.pipeline, 'text_encoder_2'):
-                self.original_text_encoder_2 = self.pipeline.text_encoder_2
-                logger.info("Original text_encoder_2 backed up for CLIP Skip (SDXL)")
-            
-            # Reset CLIP Skip state
-            self.current_clip_skip = 0
-            self.encoder_cache.clear()
             
             return {
                 "success": True,
@@ -401,11 +380,16 @@ class ModelManager:
             if self.pipeline is None:
                 return {"success": False, "error": "No model loaded"}
             
-            # Apply CLIP Skip by replacing text encoder if needed
-            if clip_skip != self.current_clip_skip:
-                logger.info(f"Applying CLIP Skip: {clip_skip}")
-                self._apply_clip_skip(clip_skip)
-                self.current_clip_skip = clip_skip
+            # Apply CLIP Skip by monkey-patching encode_prompt if needed
+            if clip_skip > 0:
+                logger.info(f"Applying CLIP Skip: {clip_skip} (skipping last {clip_skip} layer(s))")
+                # Monkey-patch the pipeline's encode_prompt to use CLIP Skip
+                self._patch_pipeline_for_clip_skip(self.pipeline, clip_skip)
+            else:
+                # Restore original encode_prompt if exists
+                if hasattr(self.pipeline, '_original_encode_prompt'):
+                    self.pipeline.encode_prompt = self.pipeline._original_encode_prompt
+                    logger.info("CLIP Skip disabled, restored original encode_prompt")
             
             # Set scheduler if specified
             self._set_scheduler(self.pipeline, scheduler)
@@ -451,144 +435,126 @@ class ModelManager:
             except Exception as e:
                 logger.warning(f"Could not set scheduler {scheduler_name}: {e}")
     
-    def _apply_clip_skip(self, clip_skip: int) -> None:
+    def _patch_pipeline_for_clip_skip(self, pipeline: Any, clip_skip: int) -> None:
         """
-        Apply CLIP Skip by replacing text encoder with truncated version.
+        Monkey-patch pipeline's encode_prompt to support CLIP Skip using hidden_states.
         
-        CLIP Skip works by using fewer layers of the CLIP text encoder:
-        - clip_skip=0: Use all layers (standard behavior)
-        - clip_skip=1: Skip last layer (more literal interpretation)
-        - clip_skip=2: Skip last 2 layers (recommended for Pony/Anime models)
-        - clip_skip=3: Skip last 3 layers (maximum artistic freedom)
+        This approach uses output_hidden_states=True and selects an earlier layer's output
+        instead of reloading the entire text encoder model. This is:
+        - Faster (no model reloading)
+        - Works with already loaded models
+        - No need to store model_id
         
-        This is done by:
-        1. Loading CLIPTextModel config
-        2. Reducing num_hidden_layers by (clip_skip - 1)
-        3. Reloading text encoder with truncated config
-        4. Replacing pipeline's text_encoder
+        CLIP Skip convention:
+        - clip_skip=1: Use hidden_states[-2] (skip last layer)
+        - clip_skip=2: Use hidden_states[-3] (skip last 2 layers) ← Recommended for Pony/Anime
+        - clip_skip=3: Use hidden_states[-4] (skip last 3 layers)
         
-        For SDXL: Both text_encoder and text_encoder_2 are replaced
-        """
-        try:
-            if not hasattr(self.pipeline, 'text_encoder'):
-                logger.warning("Pipeline has no text_encoder, CLIP Skip not supported")
-                return
-            
-            if self.current_model_id is None:
-                logger.warning("No model_id stored, cannot apply CLIP Skip")
-                return
-            
-            # Restore original encoders if clip_skip=0
-            if clip_skip == 0:
-                if self.original_text_encoder is not None:
-                    logger.info("Restoring original text_encoder (CLIP Skip disabled)")
-                    self.pipeline.text_encoder = self.original_text_encoder
-                if self.original_text_encoder_2 is not None:
-                    logger.info("Restoring original text_encoder_2 (CLIP Skip disabled)")
-                    self.pipeline.text_encoder_2 = self.original_text_encoder_2
-                return
-            
-            # Check cache first to avoid redundant loading
-            cache_key_1 = (self.current_model_id, clip_skip, 1)
-            cache_key_2 = (self.current_model_id, clip_skip, 2)
-            
-            # Replace text_encoder (exists in all SD models)
-            if cache_key_1 in self.encoder_cache:
-                logger.info(f"Using cached text_encoder for CLIP Skip {clip_skip}")
-                self.pipeline.text_encoder = self.encoder_cache[cache_key_1]
-            else:
-                logger.info(f"Loading new text_encoder with CLIP Skip {clip_skip}")
-                new_encoder = self._load_truncated_text_encoder(
-                    self.current_model_id, 
-                    "text_encoder", 
-                    clip_skip
-                )
-                if new_encoder:
-                    self.pipeline.text_encoder = new_encoder
-                    self.encoder_cache[cache_key_1] = new_encoder
-                    logger.info(f"✓ text_encoder replaced (skipping last {clip_skip} layer(s))")
-            
-            # Replace text_encoder_2 for SDXL models
-            if hasattr(self.pipeline, 'text_encoder_2'):
-                if cache_key_2 in self.encoder_cache:
-                    logger.info(f"Using cached text_encoder_2 for CLIP Skip {clip_skip}")
-                    self.pipeline.text_encoder_2 = self.encoder_cache[cache_key_2]
-                else:
-                    logger.info(f"Loading new text_encoder_2 with CLIP Skip {clip_skip}")
-                    new_encoder_2 = self._load_truncated_text_encoder(
-                        self.current_model_id,
-                        "text_encoder_2",
-                        clip_skip
-                    )
-                    if new_encoder_2:
-                        self.pipeline.text_encoder_2 = new_encoder_2
-                        self.encoder_cache[cache_key_2] = new_encoder_2
-                        logger.info(f"✓ text_encoder_2 replaced (SDXL dual-encoder)")
-            
-            logger.info(f"CLIP Skip {clip_skip} successfully applied!")
-            
-        except Exception as e:
-            logger.error(f"Failed to apply CLIP Skip: {e}")
-            logger.warning("Continuing with original text encoder")
-    
-    def _load_truncated_text_encoder(
-        self, 
-        model_id: str, 
-        subfolder: str,
-        clip_skip: int
-    ) -> Optional[Any]:
-        """
-        Load a CLIPTextModel with truncated layers for CLIP Skip.
-        
-        Args:
-            model_id: HuggingFace model ID (e.g., "runwayml/stable-diffusion-v1-5")
-            subfolder: Subfolder name ("text_encoder" or "text_encoder_2")
-            clip_skip: Number of layers to skip (1-3)
-        
-        Returns:
-            Truncated CLIPTextModel or None if loading fails
+        Reference: https://github.com/huggingface/diffusers/issues/4834
         """
         try:
-            # Load original config
-            text_config = CLIPTextConfig.from_pretrained(
-                model_id,
-                subfolder=subfolder,
-                cache_dir=settings.MODELS_DIR
-            )
+            if not hasattr(pipeline, 'encode_prompt'):
+                logger.warning("Pipeline has no encode_prompt method, cannot apply CLIP Skip")
+                return
             
-            original_layers = text_config.num_hidden_layers
+            # Store original encode_prompt if not already stored
+            if not hasattr(pipeline, '_original_encode_prompt'):
+                pipeline._original_encode_prompt = pipeline.encode_prompt
+                logger.info("Original encode_prompt method backed up")
             
-            # Calculate new layer count
-            # clip_skip=2 means we want to skip the last layer before the final output
-            # So we reduce by (clip_skip - 1)
-            new_layers = original_layers - (clip_skip - 1)
+            # Get original encode_prompt
+            original_encode_prompt = pipeline._original_encode_prompt
             
-            if new_layers <= 0:
-                logger.error(f"Invalid CLIP Skip {clip_skip}: would result in {new_layers} layers")
-                return None
+            # Create wrapper function with CLIP Skip
+            def encode_prompt_with_clip_skip(*args, **kwargs):
+                """Wrapper that applies CLIP Skip to encode_prompt"""
+                try:
+                    # Call original encode_prompt with output_hidden_states=True
+                    # We need to intercept the text_encoder call
+                    
+                    # Store original text_encoder forward method
+                    if not hasattr(pipeline.text_encoder, '_original_forward'):
+                        pipeline.text_encoder._original_forward = pipeline.text_encoder.forward
+                    
+                    original_forward = pipeline.text_encoder._original_forward
+                    
+                    def text_encoder_forward_with_clip_skip(*enc_args, **enc_kwargs):
+                        """Modified forward that returns hidden_states[-(clip_skip+1)]"""
+                        # Force output_hidden_states=True
+                        enc_kwargs['output_hidden_states'] = True
+                        enc_kwargs['return_dict'] = True
+                        
+                        # Call original forward
+                        outputs = original_forward(*enc_args, **enc_kwargs)
+                        
+                        # Select earlier hidden state based on clip_skip
+                        if hasattr(outputs, 'hidden_states') and len(outputs.hidden_states) > clip_skip:
+                            selected_hidden = outputs.hidden_states[-(clip_skip + 1)]
+                            
+                            # Apply final layer norm if available
+                            if hasattr(pipeline.text_encoder.text_model, 'final_layer_norm'):
+                                selected_hidden = pipeline.text_encoder.text_model.final_layer_norm(selected_hidden)
+                            
+                            # Replace last_hidden_state with selected hidden state
+                            outputs.last_hidden_state = selected_hidden
+                            
+                            logger.debug(f"CLIP Skip applied: using hidden_states[{-(clip_skip + 1)}]")
+                        
+                        return outputs
+                    
+                    # Temporarily replace text_encoder forward
+                    pipeline.text_encoder.forward = text_encoder_forward_with_clip_skip
+                    
+                    # Also patch text_encoder_2 for SDXL
+                    if hasattr(pipeline, 'text_encoder_2'):
+                        if not hasattr(pipeline.text_encoder_2, '_original_forward'):
+                            pipeline.text_encoder_2._original_forward = pipeline.text_encoder_2.forward
+                        
+                        original_forward_2 = pipeline.text_encoder_2._original_forward
+                        
+                        def text_encoder_2_forward_with_clip_skip(*enc_args, **enc_kwargs):
+                            enc_kwargs['output_hidden_states'] = True
+                            enc_kwargs['return_dict'] = True
+                            outputs = original_forward_2(*enc_args, **enc_kwargs)
+                            
+                            if hasattr(outputs, 'hidden_states') and len(outputs.hidden_states) > clip_skip:
+                                selected_hidden = outputs.hidden_states[-(clip_skip + 1)]
+                                if hasattr(pipeline.text_encoder_2.text_model, 'final_layer_norm'):
+                                    selected_hidden = pipeline.text_encoder_2.text_model.final_layer_norm(selected_hidden)
+                                outputs.last_hidden_state = selected_hidden
+                                logger.debug(f"CLIP Skip applied to text_encoder_2: using hidden_states[{-(clip_skip + 1)}]")
+                            
+                            return outputs
+                        
+                        pipeline.text_encoder_2.forward = text_encoder_2_forward_with_clip_skip
+                    
+                    # Call original encode_prompt with patched text_encoder
+                    result = original_encode_prompt(*args, **kwargs)
+                    
+                    # Restore original forwards
+                    pipeline.text_encoder.forward = original_forward
+                    if hasattr(pipeline, 'text_encoder_2'):
+                        pipeline.text_encoder_2.forward = original_forward_2
+                    
+                    return result
+                    
+                except Exception as e:
+                    logger.error(f"Error in CLIP Skip wrapper: {e}")
+                    # Restore originals on error
+                    if hasattr(pipeline.text_encoder, '_original_forward'):
+                        pipeline.text_encoder.forward = pipeline.text_encoder._original_forward
+                    if hasattr(pipeline, 'text_encoder_2') and hasattr(pipeline.text_encoder_2, '_original_forward'):
+                        pipeline.text_encoder_2.forward = pipeline.text_encoder_2._original_forward
+                    # Fall back to original encode_prompt
+                    return original_encode_prompt(*args, **kwargs)
             
-            logger.info(f"Truncating {subfolder}: {original_layers} → {new_layers} layers")
-            
-            # Create truncated config
-            text_config.num_hidden_layers = new_layers
-            
-            # Load text encoder with truncated config
-            text_encoder = CLIPTextModel.from_pretrained(
-                model_id,
-                subfolder=subfolder,
-                config=text_config,
-                torch_dtype=self.dtype,
-                cache_dir=settings.MODELS_DIR
-            )
-            
-            # Move to device
-            text_encoder = text_encoder.to(self.device)
-            
-            return text_encoder
+            # Replace pipeline's encode_prompt with our wrapper
+            pipeline.encode_prompt = encode_prompt_with_clip_skip
+            logger.info(f"✓ CLIP Skip {clip_skip} patched successfully (hidden_states method)")
             
         except Exception as e:
-            logger.error(f"Failed to load truncated text encoder from {subfolder}: {e}")
-            return None
+            logger.error(f"Failed to patch pipeline for CLIP Skip: {e}")
+            logger.warning("Continuing without CLIP Skip")
 
     def generate_img2img(
         self,
