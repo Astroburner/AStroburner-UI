@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.9.9.1] - 2025-10-21
+## [1.9.10] - 2025-10-21
 
-### 🔥 Critical Dependency Fix - PEFT Library Missing
+### 🔥 Critical Dependency Fix - PEFT Library Missing + Semver Fix
 
 **Problem:** LoRA loading still failed with "PEFT backend is required for this method" error despite v1.9.9 code fix.
 
@@ -33,14 +33,18 @@ pip install peft>=0.13.0
 pip install -r requirements.txt
 ```
 
+**Semver Fix:**
+- Changed version from `1.9.9.1` to `1.9.10` (Tauri requires 3-digit semver)
+- Tauri error: "package > version must be a semver string"
+
 **Files Changed:**
 - `backend/requirements.txt`: Added PEFT dependency
-- `backend/config.py`: Version 1.9.9.1
-- `frontend/package.json`: Version 1.9.9.1
-- `frontend/src-tauri/Cargo.toml`: Version 1.9.9.1
-- `frontend/src-tauri/tauri.conf.json`: Version 1.9.9.1
-- `frontend/src/components/SettingsPanel.tsx`: Version 1.9.9.1
-- `README.md`: Updated with v1.9.9.1 section
+- `backend/config.py`: Version 1.9.10
+- `frontend/package.json`: Version 1.9.10
+- `frontend/src-tauri/Cargo.toml`: Version 1.9.10
+- `frontend/src-tauri/tauri.conf.json`: Version 1.9.10
+- `frontend/src/components/SettingsPanel.tsx`: Version 1.9.10
+- `README.md`: Updated with v1.9.10 section
 
 **Compatible Versions:**
 ```

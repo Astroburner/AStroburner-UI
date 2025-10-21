@@ -1,6 +1,6 @@
 {
   "productName": "Astroburner-UI",
-  "version": "1.9.9.1",
+  "version": "1.9.10",
   "identifier": "com.astroburner.astroburner-ui",
   "build": {
     "beforeDevCommand": "npm run dev",

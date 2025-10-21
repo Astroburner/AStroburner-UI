@@ -2,13 +2,13 @@
 
 Eine moderne Desktop-Anwendung für KI-basierte Bild- und Videogenerierung mit lokalem GPU-Support.
 
-![Astroburner-UI](https://img.shields.io/badge/version-1.9.9.1-blue)
+![Astroburner-UI](https://img.shields.io/badge/version-1.9.10-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## 🎯 Features
 
-### v1.9.9.1 Critical Dependency Fix (NEU!)
+### v1.9.10 Critical Dependency Fix (NEU!)
 - 🔥 **PEFT Library Added** - Fehlende PEFT-Dependency zu requirements.txt hinzugefügt
 - ✅ **LoRA Loading Fixed** - `fuse_lora()` und `unfuse_lora()` funktionieren jetzt korrekt
 - 📦 **Installation Update** - `pip install -r requirements.txt` installiert jetzt PEFT automatisch
