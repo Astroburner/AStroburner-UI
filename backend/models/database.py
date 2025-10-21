@@ -369,3 +369,13 @@ class Database:
             """, (1 if is_active else 0, model_id))
             await db.commit()
             return True
+    
+    async def get_custom_model(self, model_id: int) -> Optional[Dict]:
+        """Get custom model by ID (alias for get_custom_model_by_id)"""
+        return await self.get_custom_model_by_id(model_id)
+    
+    async def deactivate_all_custom_models(self):
+        """Deactivate all custom models"""
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute("UPDATE custom_models SET is_active = 0")
+            await db.commit()
